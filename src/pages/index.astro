@@ -1,0 +1,68 @@
+---
+import Layout from "../layouts/Layout.astro";
+import teams from "../data/teams.json";
+import "../styles/global.css";
+
+const sortedTeams = [...teams].sort((a, b) => a.name.localeCompare(b.name));
+const siteTitle = "homegame.today";
+const pageTitle = "Is there a game today?";
+const description = "Pick your MLB team to see if there’s a home game today.";
+---
+
+<Layout title={`${pageTitle} | ${siteTitle}`} description={description}>
+  <header class="hero">
+    <h1 class="title">homegame.today</h1>
+    <p class="tagline">Select your team to see if there’s a home game today.</p>
+    <label class="search">
+      <span class="sr-only">Search teams</span>
+      <input
+        id="team-search"
+        type="search"
+        placeholder="Search teams…"
+        autocomplete="off"
+        inputmode="search"
+      />
+    </label>
+  </header>
+
+  <ul class="grid" id="team-grid">
+    {
+      sortedTeams.map((team) => (
+        <li class="card" data-team={team.name.toLowerCase()}>
+          <a class="link" href={`/${team.slug}`}>
+            <span class="swatch" style={`background:${team.colors?.[0] ?? "#e5e7eb"}`} />
+            <span class="name">{team.name}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <p id="no-results" class="no-results" hidden>No teams match your search.</p>
+  <script>
+    const searchInput = document.getElementById("team-search") as HTMLInputElement | null;
+    const grid = document.getElementById("team-grid") as HTMLElement | null;
+    const items = Array.from(grid?.querySelectorAll(".card") ?? []) as HTMLElement[];
+    const emptyState = document.getElementById("no-results") as HTMLElement | null;
+
+    function normalize(text: string): string {
+      return (text || "").toLowerCase();
+    }
+
+    function applyFilter(q: string): void {
+      const query = normalize(q);
+      let visible = 0;
+      for (const item of items) {
+        const name = item.dataset.team || "";
+        const show = name.includes(query);
+        item.hidden = !show;
+        if (show) visible++;
+      }
+      if (emptyState) emptyState.hidden = visible !== 0;
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", () => applyFilter(searchInput.value || ""));
+    }
+    document.addEventListener("DOMContentLoaded", () => applyFilter(""));
+  </script>
+</Layout>

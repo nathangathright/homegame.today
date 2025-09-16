@@ -1,0 +1,35 @@
+# Node / package managers
+node_modules/
+.pnpm-store/
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Astro
+.astro/
+dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors/IDEs
+.vscode/
+.idea/
+
+# Caches
+.cache/
+.parcel-cache/
+
+# Testing
+coverage/
+
+# Local tool env files
+.dev.vars
+

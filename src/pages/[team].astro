@@ -1,0 +1,170 @@
+---
+import Layout from "../layouts/Layout.astro";
+import teams from "../data/teams.json";
+import "../styles/global.css";
+
+export const prerender = true;
+export async function getStaticPaths() {
+  return teams.map((t) => ({ params: { team: t.slug } }));
+}
+
+const { params, site } = Astro;
+const slug = params.team;
+const team = teams.find((t) => t.slug === slug);
+
+if (!team) {
+  Astro.response.status = 404;
+}
+
+let data: any = null;
+let error = null;
+let apiUrlString = "";
+
+if (team) {
+  const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
+  apiUrl.searchParams.set("sportId", "1");
+  apiUrl.searchParams.set("teamId", String(team.id));
+  apiUrlString = apiUrl.toString();
+
+  try {
+    const res = await fetch(apiUrlString, { headers: { accept: "application/json" } });
+    if (!res.ok) {
+      error = `API error: ${res.status}`;
+    } else {
+      data = await res.json();
+    }
+  } catch (e) {
+    error = e instanceof Error ? e.message : String(e);
+  }
+}
+
+type ApiTeamRef = { id?: number; name?: string };
+type ApiGameTeams = { home?: { team?: ApiTeamRef }; away?: { team?: ApiTeamRef } };
+type ApiVenue = { name?: string };
+type ApiGame = { teams?: ApiGameTeams; gameDate?: string; venue?: ApiVenue };
+type ApiDate = { date?: string; games?: ApiGame[] };
+
+const dates: ApiDate[] = (data?.dates ?? []) as ApiDate[];
+const games: ApiGame[] = dates.flatMap((d: ApiDate) => d.games ?? []);
+const homeGames = games.filter((g: ApiGame) => g?.teams?.home?.team?.id === team?.id);
+const awayGames = games.filter((g: ApiGame) => g?.teams?.away?.team?.id === team?.id);
+
+function formatTime(iso: string) {
+  try {
+    return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  } catch {
+    return iso;
+  }
+}
+
+// Determine which date to show: API date if present, otherwise today
+const scheduleDateIso = dates?.[0]?.date;
+const todayIso = new Date().toISOString().slice(0, 10);
+const pageDateIso = scheduleDateIso ?? todayIso;
+function formatDateIsoToLong(isoDate: string) {
+  try {
+    return new Date(isoDate + "T00:00:00").toLocaleDateString(undefined, { dateStyle: "full" });
+  } catch {
+    return isoDate;
+  }
+}
+const pageDateLabel = formatDateIsoToLong(pageDateIso);
+const siteName = "homegame.today";
+const teamName = team?.name ?? "Team";
+const answer = team ? (homeGames.length > 0 ? "Yes" : "No") : "";
+const subtextMsg = team
+  ? homeGames.length > 0
+    ? `There’s a home game today${team?.venue ? ` at ${team.venue}` : ""}.`
+    : awayGames.length > 0
+      ? "No home game today."
+      : "No game today."
+  : "";
+const pageTitle = team
+  ? `${teamName} — ${answer} home game today? | ${siteName}`
+  : `Team not found | ${siteName}`;
+const pageDescription = team
+  ? `Is there a ${teamName} home game on ${pageDateLabel}? ${answer}. ${subtextMsg}`
+  : "Team not found.";
+const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
+
+// JSON-LD SportsEvent structured data for today’s game (home preferred, otherwise away)
+const selectedGame: ApiGame | undefined = (homeGames[0] ?? awayGames[0]) as ApiGame | undefined;
+const isHome = !!homeGames[0];
+const opponentName = selectedGame
+  ? isHome
+    ? selectedGame?.teams?.away?.team?.name
+    : selectedGame?.teams?.home?.team?.name
+  : undefined;
+const gameStartIso =
+  selectedGame?.gameDate ?? (pageDateIso ? `${pageDateIso}T00:00:00Z` : undefined);
+
+let jsonLd: any = null;
+if (selectedGame && gameStartIso) {
+  jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: isHome
+      ? `${teamName} vs ${opponentName ?? "Opponent"}`
+      : `${opponentName ?? "Opponent"} vs ${teamName}`,
+    sport: "Baseball",
+    startDate: gameStartIso,
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    homeTeam: {
+      "@type": "SportsTeam",
+      name: isHome ? teamName : (selectedGame?.teams?.home?.team?.name ?? "Home Team"),
+    },
+    awayTeam: {
+      "@type": "SportsTeam",
+      name: isHome ? (selectedGame?.teams?.away?.team?.name ?? "Away Team") : teamName,
+    },
+  };
+  if (isHome && team?.venue) {
+    jsonLd.location = { "@type": "Place", name: team.venue };
+  }
+}
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonical={canonical}
+  themeColor={team?.colors?.[0]}
+  bgColor={team?.colors?.[0]}
+  fgColor={(team?.colors?.[0] ?? "#ffffff").toLowerCase() === "#000000" ? "#ffffff" : "#ffffff"}
+>
+  {
+    !team ? (
+      <>
+        <h1>Team not found</h1>
+        <p>
+          <a href="/">Home</a>
+        </p>
+      </>
+    ) : error ? (
+      <>
+        <h1>{team.name}</h1>
+        <p>Unable to load schedule.</p>
+        <p>
+          <a href="/">Home</a>
+        </p>
+      </>
+    ) : (
+      <>
+        {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+        <div class="container">
+          <time class="date" datetime={pageDateIso}>
+            {pageDateLabel}
+          </time>
+          <div class="answer">{homeGames.length > 0 ? "Yes" : "No"}</div>
+          <div class="subtext">
+            {homeGames.length > 0
+              ? `There’s a home game today${team?.venue ? ` at ${team.venue}` : ""}.`
+              : awayGames.length > 0
+                ? "No home game today."
+                : "No game today."}
+          </div>
+        </div>
+      </>
+    )
+  }
+</Layout>
