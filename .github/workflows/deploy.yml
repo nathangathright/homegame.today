@@ -1,6 +1,8 @@
 name: Deploy to GitHub Pages
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [ main ]
   schedule:
@@ -20,21 +22,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Read pnpm version from packageManager
-        id: pnpmver
-        run: echo "version=$(node -p \"require('./package.json').packageManager.split('@')[1].split('+')[0]\")" >> $GITHUB_OUTPUT
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ steps.pnpmver.outputs.version }}
-          run_install: false
-      - run: pnpm --version
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - uses: actions/upload-pages-artifact@v3
+          node-version: "latest"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
