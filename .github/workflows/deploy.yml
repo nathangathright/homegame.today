@@ -40,6 +40,13 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Post to Bluesky (scheduled runs only)
+        if: github.event_name == 'schedule'
+        env:
+          # Per-team account passwords (add more as teams gain DIDs)
+          BLUESKY_PASSWORD_CUBS: ${{ secrets.BLUESKY_PASSWORD_CUBS }}
+        run: pnpm post:bluesky
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

@@ -100,49 +100,21 @@ Optional `www`:
 
 - CNAME `www → <username>.github.io`
 
-## Bluesky verified handles per team (subdomains)
+## Bluesky automated posts
 
-Goal: allow handles like `cubs.homegame.today` for Bluesky, while redirecting web visits to `https://homegame.today/cubs` and serving `/.well-known/atproto-did` at the team subdomain for verification.
-
-Serve each DID from the site and use a single Cloudflare Redirect Rule for subdomains.
-
-1) Add DIDs to `src/data/teams.json`:
-
-```json
-{
-  "id": 112,
-  "name": "Chicago Cubs",
-  "slug": "cubs",
-  "colors": ["#0e3386", "#cc3433"],
-  "venue": "Wrigley Field",
-  "did": "did:plc:yourcubsdid"
-}
-```
-
-2) Endpoint in repo: `src/pages/[team]/.well-known/atproto-did.ts` (included)
-
-- It prerenders plain text `did` for teams that have a `did` value.
-- URL: `https://homegame.today/<team>/.well-known/atproto-did`
-
-3) Cloudflare DNS: wildcard CNAME
-
-- Type: CNAME, Name: `*`, Target: `homegame.today`, Proxy: Proxied
-
-4) Cloudflare Redirect Rule
-
-When expression:
+- Each team uses its own Bluesky account with handle `@<slug>.homegame.today` (e.g., `@cubs.homegame.today`).
+- Add a repo secret for each team you want to post for: `BLUESKY_PASSWORD_<SLUG>` (e.g., `BLUESKY_PASSWORD_CUBS`). Teams without a password secret are skipped.
+- Posts run automatically on the daily scheduled workflow after the build. Manual runs and pushes do not post.
+- Posts are plain text and include no links. Message examples:
+  - "Chicago Cubs — Home game today at Wrigley Field."
+  - "Chicago Cubs — No home game today."
+  - "Chicago Cubs — No game today."
+- Local test (example for Cubs):
 
 ```
-http.request.host.header ne "homegame.today" and ends_with(http.request.host.header, ".homegame.today")
+BLUESKY_PASSWORD_CUBS=your-app-password pnpm post:bluesky
 ```
 
-Dynamic redirect URL:
-
-```
-concat("https://homegame.today/", regex_substring(http.request.host.header, "^[^.]+"), http.request.uri)
-```
-
-- This makes `https://cubs.homegame.today/.well-known/atproto-did` redirect to `https://homegame.today/cubs/.well-known/atproto-did` which serves the DID.
 
 ## How “daily updates” work
 

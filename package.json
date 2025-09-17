@@ -8,9 +8,11 @@
     "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "post:bluesky": "node scripts/post-bluesky.mjs"
   },
   "dependencies": {
+    "@atproto/api": "^0.13.21",
     "@tailwindcss/vite": "^4.1.13",
     "astro": "^5.13.7",
     "tailwindcss": "^4.1.13"
