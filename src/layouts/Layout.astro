@@ -28,7 +28,7 @@ const { bgColor, fgColor, title, description, canonical, themeColor } = Astro.pr
     <meta name="twitter:title" content={title ?? "homegame.today"} />
     {description && <meta name="twitter:description" content={description} />}
   </head>
-  <body style={`background:${bgColor ?? "white"};color:${fgColor ?? "inherit"}`}>
+  <body class="font-sans container m-auto" style={`background:${bgColor ?? "white"};color:${fgColor ?? "inherit"}`}>
     <slot />
   </body>
 </html>

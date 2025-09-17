@@ -151,12 +151,12 @@ if (selectedGame && gameStartIso) {
     ) : (
       <>
         {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
-        <div class="container">
-          <time class="date" datetime={pageDateIso}>
+        <div class="h-dvh grid place-items-center text-center">
+          <time class="text-[clamp(1rem,2.5vw,2rem)] opacity-90" datetime={pageDateIso}>
             {pageDateLabel}
           </time>
-          <div class="answer">{homeGames.length > 0 ? "Yes" : "No"}</div>
-          <div class="subtext">
+          <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">{homeGames.length > 0 ? "Yes" : "No"}</div>
+          <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90">
             {homeGames.length > 0
               ? `There’s a home game today${team?.venue ? ` at ${team.venue}` : ""}.`
               : awayGames.length > 0
