@@ -86,6 +86,7 @@ const pageDescription = team
   ? `Is there a ${teamName} home game on ${pageDateLabel}? ${answer}. ${subtextMsg}`
   : "Team not found.";
 const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
+const ogImage = site ? new URL(`/og/${slug}.png`, site).toString() : `/og/${slug}.png`;
 
 // JSON-LD SportsEvent structured data for today’s game (home preferred, otherwise away)
 const selectedGame: ApiGame | undefined = (homeGames[0] ?? awayGames[0]) as ApiGame | undefined;
@@ -131,6 +132,7 @@ if (selectedGame && gameStartIso) {
   themeColor={team?.colors?.[0]}
   bgColor={team?.colors?.[0]}
   fgColor={(team?.colors?.[0] ?? "#ffffff").toLowerCase() === "#000000" ? "#ffffff" : "#ffffff"}
+  ogImage={ogImage}
 >
   {
     !team ? (

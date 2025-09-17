@@ -1,11 +1,12 @@
 ---
-const { bgColor, fgColor, title, description, canonical, themeColor } = Astro.props as {
+const { bgColor, fgColor, title, description, canonical, themeColor, ogImage } = Astro.props as {
   bgColor?: string;
   fgColor?: string;
   title?: string;
   description?: string;
   canonical?: string;
   themeColor?: string;
+  ogImage?: string;
 };
 ---
 
@@ -24,9 +25,13 @@ const { bgColor, fgColor, title, description, canonical, themeColor } = Astro.pr
     <meta property="og:title" content={title ?? "homegame.today"} />
     {description && <meta property="og:description" content={description} />}
     {canonical && <meta property="og:url" content={canonical} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && <meta property="og:image:width" content="1200" />}
+    {ogImage && <meta property="og:image:height" content="630" />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title ?? "homegame.today"} />
     {description && <meta name="twitter:description" content={description} />}
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
   </head>
   <body class="font-sans container m-auto" style={`background:${bgColor ?? "white"};color:${fgColor ?? "inherit"}`}>
     <slot />

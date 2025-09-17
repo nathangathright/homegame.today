@@ -7,9 +7,11 @@ const sortedTeams = [...teams].sort((a, b) => a.name.localeCompare(b.name));
 const siteTitle = "homegame.today";
 const pageTitle = "Is there a home game today?";
 const description = "Pick your MLB team to see if there’s a home game today.";
+const site = Astro.site;
+const ogImage = site ? new URL(`/og/site.png`, site).toString() : `/og/site.png`;
 ---
 
-<Layout title={`${pageTitle} | ${siteTitle}`} description={description}>
+<Layout title={`${pageTitle} | ${siteTitle}`} description={description} ogImage={ogImage}>
   <header class="grid gap-3 justify-items-center text-center pt-12 px-6 pb-5">
     <h1 class="m-0 font-extrabold tracking-tight text-[clamp(2rem,6vw,3rem)]">homegame.today</h1>
     <p class="m-0 opacity-80 text-[clamp(1rem,2.5vw,1.125rem)]">Select your team to see if there’s a home game today.</p>
