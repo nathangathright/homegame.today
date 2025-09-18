@@ -45,7 +45,7 @@ jobs:
         env:
           # Per-team account passwords (add more as teams gain DIDs)
           BLUESKY_PASSWORD_CUBS: ${{ secrets.BLUESKY_PASSWORD_CUBS }}
-          BLUESKY_PASSWORD_CUBS: ${{ secrets.BLUESKY_PASSWORD_RANGERS }}
+          BLUESKY_PASSWORD_RANGERS: ${{ secrets.BLUESKY_PASSWORD_RANGERS }}
           BLUESKY_PASSWORD_WHITESOX: ${{ secrets.BLUESKY_PASSWORD_WHITESOX }}
         run: pnpm post:bluesky
 
