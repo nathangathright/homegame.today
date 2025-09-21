@@ -11,10 +11,22 @@ async function readTeams() {
   return JSON.parse(fileContents);
 }
 
-async function fetchTodaySchedule(teamId) {
+async function fetchLeagueScheduleToday() {
+  const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
+  apiUrl.searchParams.set("sportId", "1");
+  const res = await fetch(apiUrl.toString(), { headers: { accept: "application/json" } });
+  if (!res.ok) {
+    throw new Error(`MLB API error ${res.status}`);
+  }
+  return res.json();
+}
+
+async function fetchScheduleWindow(teamId, startDateIso, endDateIso) {
   const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
   apiUrl.searchParams.set("sportId", "1");
   apiUrl.searchParams.set("teamId", String(teamId));
+  if (startDateIso) apiUrl.searchParams.set("startDate", startDateIso);
+  if (endDateIso) apiUrl.searchParams.set("endDate", endDateIso);
   const res = await fetch(apiUrl.toString(), { headers: { accept: "application/json" } });
   if (!res.ok) {
     throw new Error(`MLB API error ${res.status}`);
@@ -25,19 +37,41 @@ async function fetchTodaySchedule(teamId) {
 function computeStatusForTeam(team, apiData) {
   const dates = Array.isArray(apiData?.dates) ? apiData.dates : [];
   const games = dates.flatMap((d) => Array.isArray(d?.games) ? d.games : []);
-  const homeGames = games.filter((g) => g?.teams?.home?.team?.id === team?.id);
-  const awayGames = games.filter((g) => g?.teams?.away?.team?.id === team?.id);
-  const hasHomeGame = homeGames.length > 0;
-  const hasAwayGame = awayGames.length > 0;
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const gamesToday = games.filter((g) => {
+    const iso = g?.gameDate ? new Date(g.gameDate).toISOString().slice(0, 10) : undefined;
+    return iso === todayIso;
+  });
+  const homeGamesToday = gamesToday.filter((g) => g?.teams?.home?.team?.id === team?.id);
+
   const venueName = team?.venue || undefined;
+  const teamTimeZone = team?.timezone;
 
   let text;
-  if (hasHomeGame) {
-    text = `${team.name} — Home game today${venueName ? ` at ${venueName}` : ""}.`;
-  } else if (hasAwayGame) {
-    text = `${team.name} — No home game today.`;
+  if (homeGamesToday.length > 0) {
+    const dtIso = homeGamesToday[0]?.gameDate;
+    if (dtIso) {
+      const dt = new Date(dtIso);
+      const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
+      text = `${team.name} — Yes, game at ${venueName ?? "their stadium"} today at ${timePart}.`;
+    } else {
+      text = `${team.name} — Yes, game at ${venueName ?? "their stadium"} today.`;
+    }
   } else {
-    text = `${team.name} — No game today.`;
+    // Find next upcoming home game (including later today)
+    const nowTs = Date.now();
+    const upcomingHomeGames = games
+      .filter((g) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
+      .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
+    const nextHome = upcomingHomeGames.find((g) => new Date(g.gameDate).getTime() >= nowTs);
+    if (nextHome?.gameDate) {
+      const dt = new Date(nextHome.gameDate);
+      const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
+      const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
+      text = `${team.name} — No, next game at ${venueName ?? "their stadium"} will be on ${datePart} at ${timePart}.`;
+    } else {
+      text = `${team.name} — No, next game at ${venueName ?? "their stadium"} is not yet scheduled.`;
+    }
   }
   return text;
 }
@@ -46,7 +80,53 @@ async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function getLocalDateKey(date, timeZone) {
+  try {
+    // en-CA yields YYYY-MM-DD
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timeZone || undefined,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(date);
+  } catch {
+    return new Date(date).toISOString().slice(0, 10);
+  }
+}
+
+async function fetchLatestPost(agent, did) {
+  if (!did) return null;
+  try {
+    const res = await agent.com.atproto.repo.listRecords({
+      repo: did,
+      collection: "app.bsky.feed.post",
+      limit: 1,
+      reverse: true,
+    });
+    const rec = Array.isArray(res?.records) && res.records.length > 0 ? res.records[0] : null;
+    return rec || null;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.warn(`Unable to fetch latest post for ${did}: ${message}`);
+    return null;
+  }
+}
+
 async function main() {
+  // Off-season/no-games guard: skip entirely if MLB has zero games today
+  try {
+    const leagueData = await fetchLeagueScheduleToday();
+    const leagueDates = Array.isArray(leagueData?.dates) ? leagueData.dates : [];
+    const leagueGames = leagueDates.flatMap((d) => Array.isArray(d?.games) ? d.games : []);
+    if (leagueGames.length === 0) {
+      console.log("No MLB games today — skipping Bluesky posts.");
+      return;
+    }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.warn(`Unable to verify league schedule; continuing: ${message}`);
+  }
+
   const teams = await readTeams();
   let attemptedCount = 0; // teams with a configured password
   let successCount = 0;   // posts that succeeded
@@ -75,8 +155,28 @@ async function main() {
     }
 
     try {
-      const data = await fetchTodaySchedule(team.id);
+      const startIso = new Date().toISOString().slice(0, 10);
+      const end = new Date();
+      end.setDate(end.getDate() + 90);
+      const endIso = end.toISOString().slice(0, 10);
+      const data = await fetchScheduleWindow(team.id, startIso, endIso);
       const text = computeStatusForTeam(team, data);
+
+      // Skip if already posted today (team local date), or if duplicate of latest
+      const latest = await fetchLatestPost(agent, agent.session?.did ?? identifier);
+      const teamTimeZone = team?.timezone;
+      if (latest?.value?.createdAt) {
+        const lastDateKey = getLocalDateKey(new Date(latest.value.createdAt), teamTimeZone);
+        const nowDateKey = getLocalDateKey(new Date(), teamTimeZone);
+        if (lastDateKey === nowDateKey) {
+          console.log(`Already posted today for ${team.name} (${slug}) — skipping.`);
+          continue;
+        }
+      }
+      if (latest?.value?.text && latest.value.text === text) {
+        console.log(`Duplicate text for ${team.name} (${slug}) — skipping.`);
+        continue;
+      }
 
       const nowIso = new Date().toISOString();
       await agent.com.atproto.repo.createRecord({

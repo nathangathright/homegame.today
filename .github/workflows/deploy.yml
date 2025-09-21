@@ -6,7 +6,8 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: "0 5 * * *" # daily at 05:00 UTC
+    # Run daily at 09:00 UTC only during MLB regular season months (Mar–Oct)
+    - cron: "0 9 * 3-10 *"
   workflow_dispatch:
 
 permissions:

@@ -24,6 +24,13 @@ if (team) {
   const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
   apiUrl.searchParams.set("sportId", "1");
   apiUrl.searchParams.set("teamId", String(team.id));
+  // Fetch a window of upcoming games to determine the next home game
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const end = new Date();
+  end.setDate(end.getDate() + 90);
+  const endIso = end.toISOString().slice(0, 10);
+  apiUrl.searchParams.set("startDate", todayIso);
+  apiUrl.searchParams.set("endDate", endIso);
   apiUrlString = apiUrl.toString();
 
   try {
@@ -46,8 +53,22 @@ type ApiDate = { date?: string; games?: ApiGame[] };
 
 const dates: ApiDate[] = (data?.dates ?? []) as ApiDate[];
 const games: ApiGame[] = dates.flatMap((d: ApiDate) => d.games ?? []);
-const homeGames = games.filter((g: ApiGame) => g?.teams?.home?.team?.id === team?.id);
-const awayGames = games.filter((g: ApiGame) => g?.teams?.away?.team?.id === team?.id);
+
+// For "today" evaluation, narrow to games occurring on today's date
+const todayIso = new Date().toISOString().slice(0, 10);
+const gamesToday = games.filter((g: ApiGame) => {
+  const iso = g?.gameDate ? new Date(g.gameDate).toISOString().slice(0, 10) : undefined;
+  return iso === todayIso;
+});
+const homeGamesToday = gamesToday.filter((g: ApiGame) => g?.teams?.home?.team?.id === team?.id);
+const awayGamesToday = gamesToday.filter((g: ApiGame) => g?.teams?.away?.team?.id === team?.id);
+
+// Determine the next upcoming home game (including today if later)
+const upcomingHomeGames = games
+  .filter((g: ApiGame) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
+  .sort((a: ApiGame, b: ApiGame) => new Date(a.gameDate as string).getTime() - new Date(b.gameDate as string).getTime());
+const nowTs = Date.now();
+const nextHomeGame = upcomingHomeGames.find((g: ApiGame) => new Date(g.gameDate as string).getTime() >= nowTs);
 
 function formatTime(iso: string) {
   try {
@@ -57,10 +78,8 @@ function formatTime(iso: string) {
   }
 }
 
-// Determine which date to show: API date if present, otherwise today
-const scheduleDateIso = dates?.[0]?.date;
-const todayIso = new Date().toISOString().slice(0, 10);
-const pageDateIso = scheduleDateIso ?? todayIso;
+// Always show today's date at the top of the page
+const pageDateIso = todayIso;
 function formatDateIsoToLong(isoDate: string) {
   try {
     return new Date(isoDate + "T00:00:00").toLocaleDateString(undefined, { dateStyle: "full" });
@@ -71,13 +90,26 @@ function formatDateIsoToLong(isoDate: string) {
 const pageDateLabel = formatDateIsoToLong(pageDateIso);
 const siteName = "homegame.today";
 const teamName = team?.name ?? "Team";
-const answer = team ? (homeGames.length > 0 ? "Yes" : "No") : "";
+const answer = team ? (homeGamesToday.length > 0 ? "Yes" : "No") : "";
+const teamTimeZone = (team as any)?.timezone as string | undefined;
+const nextHomeText = nextHomeGame?.gameDate
+  ? (() => {
+      const dt = new Date(nextHomeGame.gameDate);
+      const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
+      const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
+      return `No, next game at ${team?.venue ?? "their stadium"} will be on ${datePart} at ${timePart}.`;
+    })()
+  : `No, next game at ${team?.venue ?? "their stadium"} is not yet scheduled.`;
 const subtextMsg = team
-  ? homeGames.length > 0
-    ? `There’s a home game today${team?.venue ? ` at ${team.venue}` : ""}.`
-    : awayGames.length > 0
-      ? "No home game today."
-      : "No game today."
+  ? homeGamesToday.length > 0
+    ? (() => {
+        const dtIso = (homeGamesToday[0] as any)?.gameDate as string | undefined;
+        if (!dtIso) return `Yes, game at ${team?.venue ?? "their stadium"} today.`;
+        const dt = new Date(dtIso);
+        const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
+        return `Yes, game at ${team?.venue ?? "their stadium"} today at ${timePart}.`;
+      })()
+    : nextHomeText
   : "";
 const pageTitle = team
   ? `${teamName} — ${answer} home game today? | ${siteName}`
@@ -89,8 +121,8 @@ const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
 const ogImage = site ? new URL(`/og/${slug}.png`, site).toString() : `/og/${slug}.png`;
 
 // JSON-LD SportsEvent structured data for today’s game (home preferred, otherwise away)
-const selectedGame: ApiGame | undefined = (homeGames[0] ?? awayGames[0]) as ApiGame | undefined;
-const isHome = !!homeGames[0];
+const selectedGame: ApiGame | undefined = (homeGamesToday[0] ?? awayGamesToday[0]) as ApiGame | undefined;
+const isHome = !!homeGamesToday[0];
 const opponentName = selectedGame
   ? isHome
     ? selectedGame?.teams?.away?.team?.name
@@ -157,14 +189,8 @@ if (selectedGame && gameStartIso) {
           <time class="text-[clamp(1rem,2.5vw,2rem)] opacity-90" datetime={pageDateIso}>
             {pageDateLabel}
           </time>
-          <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">{homeGames.length > 0 ? "Yes" : "No"}</div>
-          <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90">
-            {homeGames.length > 0
-              ? `There’s a home game today${team?.venue ? ` at ${team.venue}` : ""}.`
-              : awayGames.length > 0
-                ? "No home game today."
-                : "No game today."}
-          </div>
+          <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">{homeGamesToday.length > 0 ? "Yes" : "No"}</div>
+          <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90">{subtextMsg}</div>
         </div>
       </>
     )

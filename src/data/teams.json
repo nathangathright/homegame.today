@@ -4,209 +4,239 @@
     "name": "Arizona Diamondbacks",
     "slug": "diamondbacks",
     "colors": ["#aa182c", "#000000"],
-    "venue": "Chase Field"
+    "venue": "Chase Field",
+    "timezone": "America/Phoenix"
   },
   {
     "id": 133,
     "name": "Athletics",
     "slug": "athletics",
     "colors": ["#003831", "#efb21e"],
-    "venue": "Sutter Health Park"
+    "venue": "Sutter Health Park",
+    "timezone": "America/Los_Angeles"
   },
   {
     "id": 144,
     "name": "Atlanta Braves",
     "slug": "braves",
     "colors": ["#0c2340", "#ba0c2f"],
-    "venue": "Truist Park"
+    "venue": "Truist Park",
+    "timezone": "America/New_York"
   },
   {
     "id": 110,
     "name": "Baltimore Orioles",
     "slug": "orioles",
     "colors": ["#df4601", "#000000"],
-    "venue": "Oriole Park at Camden Yards"
+    "venue": "Oriole Park at Camden Yards",
+    "timezone": "America/New_York"
   },
   {
     "id": 111,
     "name": "Boston Red Sox",
     "slug": "redsox",
     "colors": ["#0d2b56", "#bd3039"],
-    "venue": "Fenway Park"
+    "venue": "Fenway Park",
+    "timezone": "America/New_York"
   },
   {
     "id": 112,
     "name": "Chicago Cubs",
     "slug": "cubs",
     "colors": ["#0e3386", "#cc3433"],
-    "venue": "Wrigley Field"
+    "venue": "Wrigley Field",
+    "timezone": "America/Chicago"
   },
   {
     "id": 145,
     "name": "Chicago White Sox",
     "slug": "whitesox",
     "colors": ["#000000", "#c4ced4"],
-    "venue": "Guaranteed Rate Field"
+    "venue": "Guaranteed Rate Field",
+    "timezone": "America/Chicago"
   },
   {
     "id": 113,
     "name": "Cincinnati Reds",
     "slug": "reds",
     "colors": ["#c6011f", "#ffffff"],
-    "venue": "Great American Ball Park"
+    "venue": "Great American Ball Park",
+    "timezone": "America/New_York"
   },
   {
     "id": 114,
     "name": "Cleveland Guardians",
     "slug": "guardians",
     "colors": ["#002b5c", "#e31937"],
-    "venue": "Progressive Field"
+    "venue": "Progressive Field",
+    "timezone": "America/New_York"
   },
   {
     "id": 115,
     "name": "Colorado Rockies",
     "slug": "rockies",
     "colors": ["#33006f", "#000000"],
-    "venue": "Coors Field"
+    "venue": "Coors Field",
+    "timezone": "America/Denver"
   },
   {
     "id": 116,
     "name": "Detroit Tigers",
     "slug": "tigers",
     "colors": ["#0a2240", "#ff4713"],
-    "venue": "Comerica Park"
+    "venue": "Comerica Park",
+    "timezone": "America/Detroit"
   },
   {
     "id": 117,
     "name": "Houston Astros",
     "slug": "astros",
     "colors": ["#002d62", "#eb6e1f"],
-    "venue": "Minute Maid Park"
+    "venue": "Minute Maid Park",
+    "timezone": "America/Chicago"
   },
   {
     "id": 118,
     "name": "Kansas City Royals",
     "slug": "royals",
     "colors": ["#004687", "#7ab2dd"],
-    "venue": "Kauffman Stadium"
+    "venue": "Kauffman Stadium",
+    "timezone": "America/Chicago"
   },
   {
     "id": 108,
     "name": "Los Angeles Angels",
     "slug": "angels",
     "colors": ["#ba0021", "#c4ced4"],
-    "venue": "Angel Stadium"
+    "venue": "Angel Stadium",
+    "timezone": "America/Los_Angeles"
   },
   {
     "id": 119,
     "name": "Los Angeles Dodgers",
     "slug": "dodgers",
     "colors": ["#005a9c", "#ffffff"],
-    "venue": "Dodger Stadium"
+    "venue": "Dodger Stadium",
+    "timezone": "America/Los_Angeles"
   },
   {
     "id": 146,
     "name": "Miami Marlins",
     "slug": "marlins",
     "colors": ["#00a3e0", "#000000"],
-    "venue": "loanDepot park"
+    "venue": "loanDepot park",
+    "timezone": "America/New_York"
   },
   {
     "id": 158,
     "name": "Milwaukee Brewers",
     "slug": "brewers",
     "colors": ["#13294b", "#ffc72c"],
-    "venue": "American Family Field"
+    "venue": "American Family Field",
+    "timezone": "America/Chicago"
   },
   {
     "id": 142,
     "name": "Minnesota Twins",
     "slug": "twins",
     "colors": ["#031f40", "#e20e32"],
-    "venue": "Target Field"
+    "venue": "Target Field",
+    "timezone": "America/Chicago"
   },
   {
     "id": 121,
     "name": "New York Mets",
     "slug": "mets",
     "colors": ["#002d72", "#ff5910"],
-    "venue": "Citi Field"
+    "venue": "Citi Field",
+    "timezone": "America/New_York"
   },
   {
     "id": 147,
     "name": "New York Yankees",
     "slug": "yankees",
     "colors": ["#132448", "#c4ced4"],
-    "venue": "Yankee Stadium"
+    "venue": "Yankee Stadium",
+    "timezone": "America/New_York"
   },
   {
     "id": 143,
     "name": "Philadelphia Phillies",
     "slug": "phillies",
     "colors": ["#e81828", "#003278"],
-    "venue": "Citizens Bank Park"
+    "venue": "Citizens Bank Park",
+    "timezone": "America/New_York"
   },
   {
     "id": 134,
     "name": "Pittsburgh Pirates",
     "slug": "pirates",
     "colors": ["#000000", "#fdb827"],
-    "venue": "PNC Park"
+    "venue": "PNC Park",
+    "timezone": "America/New_York"
   },
   {
     "id": 135,
     "name": "San Diego Padres",
     "slug": "padres",
     "colors": ["#2f241d", "#ffc425"],
-    "venue": "Petco Park"
+    "venue": "Petco Park",
+    "timezone": "America/Los_Angeles"
   },
   {
     "id": 137,
     "name": "San Francisco Giants",
     "slug": "giants",
     "colors": ["#000000", "#fd5a1e"],
-    "venue": "Oracle Park"
+    "venue": "Oracle Park",
+    "timezone": "America/Los_Angeles"
   },
   {
     "id": 136,
     "name": "Seattle Mariners",
     "slug": "mariners",
     "colors": ["#005c5c", "#0c2c56"],
-    "venue": "T-Mobile Park"
+    "venue": "T-Mobile Park",
+    "timezone": "America/Los_Angeles"
   },
   {
     "id": 138,
     "name": "St. Louis Cardinals",
     "slug": "cardinals",
     "colors": ["#be0a14", "#001541"],
-    "venue": "Busch Stadium"
+    "venue": "Busch Stadium",
+    "timezone": "America/Chicago"
   },
   {
     "id": 139,
     "name": "Tampa Bay Rays",
     "slug": "rays",
     "colors": ["#092c5c", "#8fbce6"],
-    "venue": "Tropicana Field"
+    "venue": "Tropicana Field",
+    "timezone": "America/New_York"
   },
   {
     "id": 140,
     "name": "Texas Rangers",
     "slug": "rangers",
     "colors": ["#003278", "#c0111f"],
-    "venue": "Globe Life Field"
+    "venue": "Globe Life Field",
+    "timezone": "America/Chicago"
   },
   {
     "id": 141,
     "name": "Toronto Blue Jays",
     "slug": "bluejays",
     "colors": ["#134a8e", "#6cace5"],
-    "venue": "Rogers Centre"
+    "venue": "Rogers Centre",
+    "timezone": "America/Toronto"
   },
   {
     "id": 120,
     "name": "Washington Nationals",
     "slug": "nationals",
     "colors": ["#ab0003", "#11225b"],
-    "venue": "Nationals Park"
+    "venue": "Nationals Park",
+    "timezone": "America/New_York"
   }
 ]
