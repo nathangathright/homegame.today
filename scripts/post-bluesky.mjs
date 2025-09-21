@@ -1,6 +1,9 @@
 import { AtpAgent } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
+if (process.env.CI !== "true" && process.env.GITHUB_ACTIONS !== "true") {
+  await import("dotenv/config");
+}
 
 async function readTeams() {
   const teamsJsonPath = path.resolve(process.cwd(), "src/data/teams.json");
@@ -45,6 +48,8 @@ async function sleep(ms) {
 
 async function main() {
   const teams = await readTeams();
+  let attemptedCount = 0; // teams with a configured password
+  let successCount = 0;   // posts that succeeded
 
   for (const team of teams) {
     const slug = String(team?.slug || "");
@@ -57,6 +62,7 @@ async function main() {
       console.warn(`Skipping ${team.name} (${slug}) — missing env ${envKey}.`);
       continue;
     }
+    attemptedCount += 1;
     const identifier = `${slug}.homegame.today`;
 
     const agent = new AtpAgent({ service: "https://bsky.social" });
@@ -84,10 +90,24 @@ async function main() {
       });
 
       console.log(`Posted for ${team.name}: ${text}`);
+      successCount += 1;
       await sleep(750);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`Failed to post for ${team?.name ?? team?.id}: ${message}`);
+    }
+  }
+
+  // In CI (or when explicitly required), fail if we didn't successfully post.
+  const requireSuccess = process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true" || process.env.REQUIRE_POST_SUCCESS === "true";
+  if (requireSuccess) {
+    if (attemptedCount === 0) {
+      throw new Error(
+        "No Bluesky passwords were provided in the environment. Set BLUESKY_PASSWORD_<SLUG> secrets."
+      );
+    }
+    if (successCount === 0) {
+      throw new Error("Bluesky post failed for all configured teams.");
     }
   }
 }

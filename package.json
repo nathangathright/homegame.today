@@ -14,9 +14,10 @@
   },
   "dependencies": {
     "@atproto/api": "^0.13.21",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.1.13",
     "astro": "^5.13.7",
-    "@resvg/resvg-js": "^2.6.2",
+    "dotenv": "^16.6.1",
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
