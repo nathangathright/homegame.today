@@ -1,5 +1,5 @@
 {
-  "name": "isthereagame.today",
+  "name": "homegame.today",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -10,7 +10,8 @@
     "astro": "astro",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "post:bluesky": "node scripts/post-bluesky.mjs"
+    "post:bluesky": "node scripts/post-bluesky.mjs",
+    "og:screenshot:dev": "node scripts/screenshot-og.mjs --base=http://localhost:4321 --out=public/og"
   },
   "dependencies": {
     "@atproto/api": "^0.13.21",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@astrojs/node": "^9.4.3",
+    "playwright": "^1.47.2",
     "prettier": "^3.6.2",
     "prettier-plugin-astro": "^0.14.1",
     "react": "^19.1.1"

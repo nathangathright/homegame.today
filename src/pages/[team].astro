@@ -118,7 +118,20 @@ const pageDescription = team
   ? `Is there a ${teamName} home game on ${pageDateLabel}? ${answer}. ${subtextMsg}`
   : "Team not found.";
 const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
-const ogImage = site ? new URL(`/og/${slug}.png`, site).toString() : `/og/${slug}.png`;
+// Use dated OG image filename to bust social caches, using team-local date
+const ogDateKey = (() => {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: teamTimeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  } catch {
+    return new Date().toISOString().slice(0, 10);
+  }
+})();
+const ogImage = site ? new URL(`/og/${slug}-${ogDateKey}.png`, site).toString() : `/og/${slug}-${ogDateKey}.png`;
 
 // JSON-LD SportsEvent structured data for today’s game (home preferred, otherwise away)
 const selectedGame: ApiGame | undefined = (homeGamesToday[0] ?? awayGamesToday[0]) as ApiGame | undefined;

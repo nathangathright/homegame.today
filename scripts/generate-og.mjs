@@ -132,7 +132,7 @@ async function main() {
   });
 
   // Generate homepage OG image
-  const siteText = "HomeGame.today";
+  const siteText = "homegame.today";
   const sitePng = await renderOgPng({ text: siteText, backgroundColor: "#000000" });
   const siteOut = path.join(OUT_DIR, `site.png`);
   await fs.writeFile(siteOut, sitePng);

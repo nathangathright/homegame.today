@@ -38,8 +38,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Build
         run: pnpm build
+
+      - name: Generate OG screenshots
+        run: node scripts/screenshot-og.mjs
 
       - name: Post to Bluesky (scheduled runs only)
         if: github.event_name == 'schedule'
