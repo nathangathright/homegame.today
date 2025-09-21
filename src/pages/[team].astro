@@ -97,9 +97,9 @@ const nextHomeText = nextHomeGame?.gameDate
       const dt = new Date(nextHomeGame.gameDate);
       const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
       const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-      return `No, next game at ${team?.venue ?? "their stadium"} will be on ${datePart} at ${timePart}.`;
+      return `The next game at ${team?.venue ?? "their stadium"} will be on ${datePart} at ${timePart}.`;
     })()
-  : `No, next game at ${team?.venue ?? "their stadium"} is not yet scheduled.`;
+  : `The next game at ${team?.venue ?? "their stadium"} is not yet scheduled.`;
 const subtextMsg = team
   ? homeGamesToday.length > 0
     ? (() => {
@@ -199,11 +199,46 @@ if (selectedGame && gameStartIso) {
       <>
         {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
         <div class="h-dvh grid place-items-center text-center">
-          <time class="text-[clamp(1rem,2.5vw,2rem)] opacity-90" datetime={pageDateIso}>
-            {pageDateLabel}
-          </time>
+          <header class="px-8 flex justify-center w-full">
+            <time class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 text-pretty" datetime={pageDateIso}>
+              {pageDateLabel}
+            </time>
+          </header>
           <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">{homeGamesToday.length > 0 ? "Yes" : "No"}</div>
-          <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90">{subtextMsg}</div>
+          <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 px-8 text-pretty">
+            {
+              homeGamesToday.length > 0 ? (
+                (() => {
+                  const dtIso = (homeGamesToday[0] as any)?.gameDate as string | undefined;
+                  if (!dtIso) {
+                    return `Yes, game at ${team?.venue ?? "their stadium"} today.`;
+                  }
+                  const dt = new Date(dtIso);
+                  const label = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
+                  const iso = dt.toISOString();
+                  return (
+                    <>
+                      Today’s game at {team?.venue ?? "their stadium"} is scheduled for <time class="whitespace-nowrap" datetime={iso}>{label}</time>.
+                    </>
+                  );
+                })()
+              ) : nextHomeGame?.gameDate ? (
+                (() => {
+                  const dt = new Date(nextHomeGame.gameDate as string);
+                  const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
+                  const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
+                  const iso = dt.toISOString();
+                  return (
+                    <>
+                      The next game at {team?.venue ?? "their stadium"} is scheduled for <time class="whitespace-nowrap" datetime={iso}>{datePart} at {timePart}</time>.
+                    </>
+                  );
+                })()
+              ) : (
+                `The next game at ${team?.venue ?? "their stadium"} is not yet scheduled.`
+              )
+            }
+          </div>
         </div>
       </>
     )

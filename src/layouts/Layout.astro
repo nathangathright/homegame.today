@@ -33,7 +33,7 @@ const { bgColor, fgColor, title, description, canonical, themeColor, ogImage } =
     {description && <meta name="twitter:description" content={description} />}
     {ogImage && <meta name="twitter:image" content={ogImage} />}
   </head>
-  <body class="font-sans container m-auto" style={`background:${bgColor ?? "white"};color:${fgColor ?? "inherit"}`}>
+  <body style={`background:${bgColor ?? "white"};color:${fgColor ?? "inherit"}`}>
     <slot />
   </body>
 </html>

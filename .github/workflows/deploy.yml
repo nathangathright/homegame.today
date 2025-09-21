@@ -38,14 +38,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
-
       - name: Build
         run: pnpm build
 
-      - name: Generate OG screenshots
-        run: node scripts/screenshot-og.mjs
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
 
       - name: Post to Bluesky (scheduled runs only)
         if: github.event_name == 'schedule'
@@ -82,14 +84,6 @@ jobs:
           BLUESKY_PASSWORD_WHITESOX: ${{ secrets.BLUESKY_PASSWORD_WHITESOX }}
           BLUESKY_PASSWORD_YANKEES: ${{ secrets.BLUESKY_PASSWORD_YANKEES }}
         run: pnpm post:bluesky
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: dist
 
   deploy:
     needs: build

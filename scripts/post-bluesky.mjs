@@ -53,9 +53,9 @@ function computeStatusForTeam(team, apiData) {
     if (dtIso) {
       const dt = new Date(dtIso);
       const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-      text = `${team.name} — Yes, game at ${venueName ?? "their stadium"} today at ${timePart}.`;
+      text = `${team.name} — Yes, today’s game at ${venueName ?? "their stadium"} is scheduled for ${timePart}.`;
     } else {
-      text = `${team.name} — Yes, game at ${venueName ?? "their stadium"} today.`;
+      text = `${team.name} — Yes, there’s a game at ${venueName ?? "their stadium"} scheduled for today.`;
     }
   } else {
     // Find next upcoming home game (including later today)
@@ -68,7 +68,7 @@ function computeStatusForTeam(team, apiData) {
       const dt = new Date(nextHome.gameDate);
       const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
       const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-      text = `${team.name} — No, next game at ${venueName ?? "their stadium"} will be on ${datePart} at ${timePart}.`;
+      text = `${team.name} — No, next game at ${venueName ?? "their stadium"} is scheduled for ${datePart} at ${timePart}.`;
     } else {
       text = `${team.name} — No, next game at ${venueName ?? "their stadium"} is not yet scheduled.`;
     }
@@ -161,6 +161,8 @@ async function main() {
       const endIso = end.toISOString().slice(0, 10);
       const data = await fetchScheduleWindow(team.id, startIso, endIso);
       const text = computeStatusForTeam(team, data);
+      const pageUrl = `https://homegame.today/${slug}`;
+      const postText = `${text}\n${pageUrl}`;
 
       // Skip if already posted today (team local date), or if duplicate of latest
       const latest = await fetchLatestPost(agent, agent.session?.did ?? identifier);
@@ -173,7 +175,7 @@ async function main() {
           continue;
         }
       }
-      if (latest?.value?.text && latest.value.text === text) {
+      if (latest?.value?.text && latest.value.text === postText) {
         console.log(`Duplicate text for ${team.name} (${slug}) — skipping.`);
         continue;
       }
@@ -184,12 +186,12 @@ async function main() {
         collection: "app.bsky.feed.post",
         record: {
           $type: "app.bsky.feed.post",
-          text,
+          text: postText,
           createdAt: nowIso,
         },
       });
 
-      console.log(`Posted for ${team.name}: ${text}`);
+      console.log(`Posted for ${team.name}: ${postText}`);
       successCount += 1;
       await sleep(750);
     } catch (err) {
