@@ -1,4 +1,4 @@
-import { AtpAgent } from "@atproto/api";
+import { AtpAgent, RichText } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
 if (process.env.CI !== "true" && process.env.GITHUB_ACTIONS !== "true") {
@@ -180,6 +180,40 @@ async function main() {
         continue;
       }
 
+      // Build rich-text facets to hyperlink the team name (and the URL if present)
+      const encoder = new TextEncoder();
+      function utf8IndexFromUtf16(str, utf16Index) {
+        return encoder.encode(str.slice(0, utf16Index)).length;
+      }
+      const facets = [];
+      // Link the team name at the start of the post
+      const nameUtf8Start = 0;
+      const nameUtf8End = utf8IndexFromUtf16(postText, team.name.length);
+      facets.push({
+        index: { byteStart: nameUtf8Start, byteEnd: nameUtf8End },
+        features: [
+          {
+            $type: "app.bsky.richtext.facet#link",
+            uri: pageUrl,
+          },
+        ],
+      });
+      // Also link the raw URL line if present in the text
+      const urlStart16 = postText.indexOf(pageUrl);
+      if (urlStart16 >= 0) {
+        const urlUtf8Start = utf8IndexFromUtf16(postText, urlStart16);
+        const urlUtf8End = urlUtf8Start + encoder.encode(pageUrl).length;
+        facets.push({
+          index: { byteStart: urlUtf8Start, byteEnd: urlUtf8End },
+          features: [
+            {
+              $type: "app.bsky.richtext.facet#link",
+              uri: pageUrl,
+            },
+          ],
+        });
+      }
+
       const nowIso = new Date().toISOString();
       await agent.com.atproto.repo.createRecord({
         repo: agent.session?.did ?? identifier,
@@ -187,6 +221,7 @@ async function main() {
         record: {
           $type: "app.bsky.feed.post",
           text: postText,
+          facets,
           createdAt: nowIso,
         },
       });
