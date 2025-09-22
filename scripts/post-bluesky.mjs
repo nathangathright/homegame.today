@@ -200,17 +200,14 @@ async function main() {
     }
   }
 
-  // In CI (or when explicitly required), fail if we didn't successfully post.
-  const requireSuccess = process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true" || process.env.REQUIRE_POST_SUCCESS === "true";
-  if (requireSuccess) {
-    if (attemptedCount === 0) {
-      throw new Error(
-        "No Bluesky passwords were provided in the environment. Set BLUESKY_PASSWORD_<SLUG> secrets."
-      );
-    }
-    if (successCount === 0) {
-      throw new Error("Bluesky post failed for all configured teams.");
-    }
+  // Only fail when explicitly required. Otherwise, skip gracefully.
+  const requireSuccess = process.env.REQUIRE_POST_SUCCESS === "true";
+  if (attemptedCount === 0) {
+    console.log("No Bluesky passwords provided; skipping Bluesky posts.");
+    return;
+  }
+  if (successCount === 0 && requireSuccess) {
+    throw new Error("Bluesky post failed for all configured teams.");
   }
 }
 
