@@ -162,7 +162,31 @@ async function main() {
       const data = await fetchScheduleWindow(team.id, startIso, endIso);
       const text = computeStatusForTeam(team, data);
       const pageUrl = `https://homegame.today/${slug}`;
-      const postText = `${text}\n${pageUrl}`;
+      const postText = text;
+      const embed = {
+        $type: "app.bsky.embed.external",
+        external: {
+          uri: pageUrl,
+          title: team.name,
+          description: text,
+        },
+      };
+
+      // Try to attach the day's OG image as the card thumbnail
+      try {
+        const todayKey = getLocalDateKey(new Date(), team?.timezone);
+        const ogPath = path.resolve(process.cwd(), "dist", "og", `${slug}-${todayKey}.png`);
+        const bytes = await fs.readFile(ogPath);
+        const upload = await agent.com.atproto.repo.uploadBlob(bytes, { encoding: "image/png" });
+        const thumb = upload?.data?.blob ?? upload?.blob;
+        if (thumb) {
+          embed.external.thumb = thumb;
+        }
+      } catch (e) {
+        // If thumb upload fails or file missing, proceed without a thumbnail
+        const message = e instanceof Error ? e.message : String(e);
+        console.warn(`OG thumb unavailable for ${team.name} (${slug}): ${message}`);
+      }
 
       // Skip if already posted today (team local date), or if duplicate of latest
       const latest = await fetchLatestPost(agent, agent.session?.did ?? identifier);
@@ -221,6 +245,7 @@ async function main() {
         record: {
           $type: "app.bsky.feed.post",
           text: postText,
+          embed,
           facets,
           createdAt: nowIso,
         },
