@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import teams from "../data/teams.json";
 import "../styles/global.css";
+import { Icon } from 'astro-icon/components';
 
 export const prerender = true;
 export async function getStaticPaths() {
@@ -133,6 +134,9 @@ const ogDateKey = (() => {
 })();
 const ogImage = site ? new URL(`/og/${slug}-${ogDateKey}.png`, site).toString() : `/og/${slug}-${ogDateKey}.png`;
 
+// Bluesky profile URL for this team
+const blueskyUrl = team ? `https://bsky.app/profile/${team.slug}.homegame.today` : "";
+
 // JSON-LD SportsEvent structured data for today’s game (home preferred, otherwise away)
 const selectedGame: ApiGame | undefined = (homeGamesToday[0] ?? awayGamesToday[0]) as ApiGame | undefined;
 const isHome = !!homeGamesToday[0];
@@ -199,10 +203,18 @@ if (selectedGame && gameStartIso) {
       <>
         {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
         <div class="h-dvh grid place-items-center text-center">
-          <header class="px-8 flex justify-center w-full">
-            <time class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 text-pretty" datetime={pageDateIso}>
+          <header class="px-8 flex justify-center w-full relative">
+            <a href="/" class="block"><Icon name="ph:arrow-left" class="w-8 h-8" /></a>
+            <hr class="invisible flex-1">
+            <time class="text-[clamp(1rem,2.5vw,2rem)] leading-8 opacity-90 text-pretty absolute inset-0 h-8 -z-1" datetime={pageDateIso}>
               {pageDateLabel}
             </time>
+            {blueskyUrl && (
+              <>
+                <a target="_blank" href={blueskyUrl} class="block"><Icon name="ph:butterfly-duotone" class="w-8 h-8" /></a>
+                <a target="_blank" href={`${blueskyUrl}/rss`} class="block"><Icon name="ph:rss-duotone" class="w-8 h-8" /></a>
+              </>
+            )}
           </header>
           <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">{homeGamesToday.length > 0 ? "Yes" : "No"}</div>
           <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 px-8 text-pretty">
