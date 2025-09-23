@@ -70,7 +70,7 @@ function computeOgText(team, apiData) {
     const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone }).replace(/ /g, "\u00A0");
     return `No, the next game at ${venueName} is scheduled for ${datePart} at\u00A0${timePart}.`;
   }
-  return `No, next game at ${venueName} is not yet scheduled.`;
+  return `No, the next game at ${venueName} is not yet scheduled.`;
 }
 
 function escapeXml(str) {

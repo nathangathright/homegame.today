@@ -68,9 +68,9 @@ function computeStatusForTeam(team, apiData) {
       const dt = new Date(nextHome.gameDate);
       const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
       const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-      text = `${team.name} — No, next game at ${venueName ?? "their stadium"} is scheduled for ${datePart} at ${timePart}.`;
+      text = `${team.name} — No, the next game at ${venueName ?? "their stadium"} is scheduled for ${datePart} at ${timePart}.`;
     } else {
-      text = `${team.name} — No, next game at ${venueName ?? "their stadium"} is not yet scheduled.`;
+      text = `${team.name} — No, the next game at ${venueName ?? "their stadium"} is not yet scheduled.`;
     }
   }
   return text;

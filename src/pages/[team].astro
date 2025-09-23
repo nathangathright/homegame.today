@@ -104,18 +104,18 @@ const subtextMsg = team
   ? homeGamesToday.length > 0
     ? (() => {
         const dtIso = (homeGamesToday[0] as any)?.gameDate as string | undefined;
-        if (!dtIso) return `Yes, game at ${team?.venue ?? "their stadium"} today.`;
+        if (!dtIso) return `Yes, today’s game at ${team?.venue ?? "their stadium"} is scheduled.`;
         const dt = new Date(dtIso);
         const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-        return `Yes, game at ${team?.venue ?? "their stadium"} today at ${timePart}.`;
+        return `Yes, today’s game at ${team?.venue ?? "their stadium"} is scheduled for ${timePart}.`;
       })()
     : nextHomeText
   : "";
 const pageTitle = team
-  ? `${teamName} — ${answer} home game today? | ${siteName}`
+  ? `${teamName} — ${answer} | ${siteName}`
   : `Team not found | ${siteName}`;
 const pageDescription = team
-  ? `Is there a ${teamName} home game on ${pageDateLabel}? ${answer}. ${subtextMsg}`
+  ? `${subtextMsg}`
   : "Team not found.";
 const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
 // Use dated OG image filename to bust social caches, using team-local date
