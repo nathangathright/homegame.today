@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { Resvg } from "@resvg/resvg-js";
+import { dateKeyInZone, fetchScheduleWindow, computeOgText, computeWindowStartEnd } from "../src/lib/mlb.mjs";
 
 const ROOT = path.resolve(process.cwd());
 const TEAMS_PATH = path.join(ROOT, "src", "data", "teams.json");
@@ -13,65 +14,7 @@ for (const arg of args) {
   }
 }
 
-function dateKeyInZone(d, timeZone) {
-  try {
-    return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
-  } catch {
-    return new Date(d).toISOString().slice(0, 10);
-  }
-}
-
-async function fetchScheduleWindow(teamId, startDateIso, endDateIso) {
-  const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
-  apiUrl.searchParams.set("sportId", "1");
-  apiUrl.searchParams.set("teamId", String(teamId));
-  if (startDateIso) apiUrl.searchParams.set("startDate", startDateIso);
-  if (endDateIso) apiUrl.searchParams.set("endDate", endDateIso);
-  const res = await fetch(apiUrl.toString(), { headers: { accept: "application/json" } });
-  if (!res.ok) {
-    throw new Error(`MLB API error ${res.status}`);
-  }
-  return res.json();
-}
-
-function computeOgText(team, apiData) {
-  const dates = Array.isArray(apiData?.dates) ? apiData.dates : [];
-  const games = dates.flatMap((d) => Array.isArray(d?.games) ? d.games : []);
-  const teamTimeZone = team?.timezone;
-  const todayKey = dateKeyInZone(new Date(), teamTimeZone);
-
-  const gamesToday = games.filter((g) => {
-    const iso = g?.gameDate ? dateKeyInZone(new Date(g.gameDate), teamTimeZone) : undefined;
-    return iso === todayKey;
-  });
-
-  const homeGamesToday = gamesToday.filter((g) => g?.teams?.home?.team?.id === team?.id);
-  const venueName = team?.venue || "their stadium";
-
-  if (homeGamesToday.length > 0) {
-    const dtIso = homeGamesToday[0]?.gameDate;
-    if (dtIso) {
-      const dt = new Date(dtIso);
-      const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-      return `Yes, today’s game at ${venueName} is scheduled for ${timePart}.`;
-    }
-    return `Yes, today’s game at ${venueName} is scheduled.`;
-  }
-
-  // Find next upcoming home game (including later today)
-  const nowTs = Date.now();
-  const upcomingHomeGames = games
-    .filter((g) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
-    .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
-  const nextHome = upcomingHomeGames.find((g) => new Date(g.gameDate).getTime() >= nowTs);
-  if (nextHome?.gameDate) {
-    const dt = new Date(nextHome.gameDate);
-    const datePart = dt.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: teamTimeZone }).replace(/ /g, "\u00A0");
-    const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone }).replace(/ /g, "\u00A0");
-    return `No, the next game at ${venueName} is scheduled for ${datePart} at\u00A0${timePart}.`;
-  }
-  return `No, the next game at ${venueName} is not yet scheduled.`;
-}
+// fetch/format helpers imported from src/lib/mlb.mjs
 
 function escapeXml(str) {
   return String(str)
@@ -180,10 +123,7 @@ async function main() {
   const teams = JSON.parse(await fs.readFile(TEAMS_PATH, "utf8"));
   await fs.mkdir(OUT_DIR, { recursive: true });
 
-  const startIso = new Date().toISOString().slice(0, 10);
-  const end = new Date();
-  end.setDate(end.getDate() + 90);
-  const endIso = end.toISOString().slice(0, 10);
+  const { startIso, endIso } = computeWindowStartEnd(new Date());
 
   for (const team of teams) {
     const slug = team?.slug;

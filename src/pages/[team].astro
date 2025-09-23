@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import teams from "../data/teams.json";
 import "../styles/global.css";
 import { Icon } from 'astro-icon/components';
+import { fetchScheduleWindow, deriveTeamScheduleFacts, computeWindowStartEnd, getLocalDateAndOptionalTime } from "../lib/mlb.mjs";
 
 export const prerender = true;
 export async function getStaticPaths() {
@@ -22,25 +23,10 @@ let error = null;
 let apiUrlString = "";
 
 if (team) {
-  const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
-  apiUrl.searchParams.set("sportId", "1");
-  apiUrl.searchParams.set("teamId", String(team.id));
   // Fetch a window of upcoming games to determine the next home game
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const end = new Date();
-  end.setDate(end.getDate() + 90);
-  const endIso = end.toISOString().slice(0, 10);
-  apiUrl.searchParams.set("startDate", todayIso);
-  apiUrl.searchParams.set("endDate", endIso);
-  apiUrlString = apiUrl.toString();
-
+  const { startIso: todayIso, endIso } = computeWindowStartEnd(new Date());
   try {
-    const res = await fetch(apiUrlString, { headers: { accept: "application/json" } });
-    if (!res.ok) {
-      error = `API error: ${res.status}`;
-    } else {
-      data = await res.json();
-    }
+    data = await fetchScheduleWindow(team.id, todayIso, endIso);
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
   }
@@ -52,24 +38,12 @@ type ApiVenue = { name?: string };
 type ApiGame = { teams?: ApiGameTeams; gameDate?: string; venue?: ApiVenue };
 type ApiDate = { date?: string; games?: ApiGame[] };
 
-const dates: ApiDate[] = (data?.dates ?? []) as ApiDate[];
-const games: ApiGame[] = dates.flatMap((d: ApiDate) => d.games ?? []);
-
-// For "today" evaluation, narrow to games occurring on today's date
-const todayIso = new Date().toISOString().slice(0, 10);
-const gamesToday = games.filter((g: ApiGame) => {
-  const iso = g?.gameDate ? new Date(g.gameDate).toISOString().slice(0, 10) : undefined;
-  return iso === todayIso;
-});
-const homeGamesToday = gamesToday.filter((g: ApiGame) => g?.teams?.home?.team?.id === team?.id);
-const awayGamesToday = gamesToday.filter((g: ApiGame) => g?.teams?.away?.team?.id === team?.id);
-
-// Determine the next upcoming home game (including today if later)
-const upcomingHomeGames = games
-  .filter((g: ApiGame) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
-  .sort((a: ApiGame, b: ApiGame) => new Date(a.gameDate as string).getTime() - new Date(b.gameDate as string).getTime());
-const nowTs = Date.now();
-const nextHomeGame = upcomingHomeGames.find((g: ApiGame) => new Date(g.gameDate as string).getTime() >= nowTs);
+const facts = team ? deriveTeamScheduleFacts(team, data) : { games: [], gamesToday: [], homeGamesToday: [], awayGamesToday: [], nextHomeGame: undefined } as any;
+const games: ApiGame[] = (facts.games ?? []) as ApiGame[];
+const gamesToday: ApiGame[] = (facts.gamesToday ?? []) as ApiGame[];
+const homeGamesToday: ApiGame[] = (facts.homeGamesToday ?? []) as ApiGame[];
+const awayGamesToday: ApiGame[] = (facts.awayGamesToday ?? []) as ApiGame[];
+const nextHomeGame: ApiGame | undefined = facts.nextHomeGame as ApiGame | undefined;
 
 function formatTime(iso: string) {
   try {
@@ -80,7 +54,7 @@ function formatTime(iso: string) {
 }
 
 // Always show today's date at the top of the page
-const pageDateIso = todayIso;
+const pageDateIso = new Date().toISOString().slice(0, 10);
 function formatDateIsoToLong(isoDate: string) {
   try {
     return new Date(isoDate + "T00:00:00").toLocaleDateString(undefined, { dateStyle: "full" });
@@ -236,13 +210,12 @@ if (selectedGame && gameStartIso) {
                 })()
               ) : nextHomeGame?.gameDate ? (
                 (() => {
-                  const dt = new Date(nextHomeGame.gameDate as string);
-                  const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
-                  const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
+                  const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(nextHomeGame as any, teamTimeZone, { dateStyle: "medium", timeStyle: "short" });
+                  const dt = new Date((nextHomeGame as any).gameDate as string);
                   const iso = dt.toISOString();
                   return (
                     <>
-                      The next game at {team?.venue ?? "their stadium"} is scheduled for <time class="whitespace-nowrap" datetime={iso}>{datePart} at {timePart}</time>.
+                      The next game at {team?.venue ?? "their stadium"} is scheduled for <time class="whitespace-nowrap" datetime={iso}>{datePart}{timeCertain && timePart ? ` at ${timePart}` : ""}</time>.
                     </>
                   );
                 })()

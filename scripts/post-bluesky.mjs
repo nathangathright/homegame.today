@@ -1,6 +1,7 @@
 import { AtpAgent, RichText } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fetchLeagueScheduleToday, fetchScheduleWindow, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd } from "../src/lib/mlb.mjs";
 if (process.env.CI !== "true" && process.env.GITHUB_ACTIONS !== "true") {
   await import("dotenv/config");
 }
@@ -11,87 +12,8 @@ async function readTeams() {
   return JSON.parse(fileContents);
 }
 
-async function fetchLeagueScheduleToday() {
-  const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
-  apiUrl.searchParams.set("sportId", "1");
-  const res = await fetch(apiUrl.toString(), { headers: { accept: "application/json" } });
-  if (!res.ok) {
-    throw new Error(`MLB API error ${res.status}`);
-  }
-  return res.json();
-}
-
-async function fetchScheduleWindow(teamId, startDateIso, endDateIso) {
-  const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
-  apiUrl.searchParams.set("sportId", "1");
-  apiUrl.searchParams.set("teamId", String(teamId));
-  if (startDateIso) apiUrl.searchParams.set("startDate", startDateIso);
-  if (endDateIso) apiUrl.searchParams.set("endDate", endDateIso);
-  const res = await fetch(apiUrl.toString(), { headers: { accept: "application/json" } });
-  if (!res.ok) {
-    throw new Error(`MLB API error ${res.status}`);
-  }
-  return res.json();
-}
-
-function computeStatusForTeam(team, apiData) {
-  const dates = Array.isArray(apiData?.dates) ? apiData.dates : [];
-  const games = dates.flatMap((d) => Array.isArray(d?.games) ? d.games : []);
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const gamesToday = games.filter((g) => {
-    const iso = g?.gameDate ? new Date(g.gameDate).toISOString().slice(0, 10) : undefined;
-    return iso === todayIso;
-  });
-  const homeGamesToday = gamesToday.filter((g) => g?.teams?.home?.team?.id === team?.id);
-
-  const venueName = team?.venue || undefined;
-  const teamTimeZone = team?.timezone;
-
-  let text;
-  if (homeGamesToday.length > 0) {
-    const dtIso = homeGamesToday[0]?.gameDate;
-    if (dtIso) {
-      const dt = new Date(dtIso);
-      const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-      text = `${team.name} — Yes, today’s game at ${venueName ?? "their stadium"} is scheduled for ${timePart}.`;
-    } else {
-      text = `${team.name} — Yes, there’s a game at ${venueName ?? "their stadium"} scheduled for today.`;
-    }
-  } else {
-    // Find next upcoming home game (including later today)
-    const nowTs = Date.now();
-    const upcomingHomeGames = games
-      .filter((g) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
-      .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
-    const nextHome = upcomingHomeGames.find((g) => new Date(g.gameDate).getTime() >= nowTs);
-    if (nextHome?.gameDate) {
-      const dt = new Date(nextHome.gameDate);
-      const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
-      const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-      text = `${team.name} — No, the next game at ${venueName ?? "their stadium"} is scheduled for ${datePart} at ${timePart}.`;
-    } else {
-      text = `${team.name} — No, the next game at ${venueName ?? "their stadium"} is not yet scheduled.`;
-    }
-  }
-  return text;
-}
-
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getLocalDateKey(date, timeZone) {
-  try {
-    // en-CA yields YYYY-MM-DD
-    return new Intl.DateTimeFormat("en-CA", {
-      timeZone: timeZone || undefined,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(date);
-  } catch {
-    return new Date(date).toISOString().slice(0, 10);
-  }
 }
 
 async function fetchLatestPost(agent, did) {
@@ -155,10 +77,7 @@ async function main() {
     }
 
     try {
-      const startIso = new Date().toISOString().slice(0, 10);
-      const end = new Date();
-      end.setDate(end.getDate() + 90);
-      const endIso = end.toISOString().slice(0, 10);
+      const { startIso, endIso } = computeWindowStartEnd(new Date());
       const data = await fetchScheduleWindow(team.id, startIso, endIso);
       const text = computeStatusForTeam(team, data);
       const pageUrl = `https://homegame.today/${slug}`;
@@ -174,7 +93,7 @@ async function main() {
 
       // Try to attach the day's OG image as the card thumbnail
       try {
-        const todayKey = getLocalDateKey(new Date(), team?.timezone);
+        const todayKey = dateKeyInZone(new Date(), team?.timezone);
         const ogPath = path.resolve(process.cwd(), "dist", "og", `${slug}-${todayKey}.png`);
         const bytes = await fs.readFile(ogPath);
         const upload = await agent.com.atproto.repo.uploadBlob(bytes, { encoding: "image/png" });
