@@ -66,7 +66,7 @@ function wrapTextToLines(text, fontSize, maxWidthPx, maxLines) {
   return { lines, overflow: false };
 }
 
-function createSvg({ lines, backgroundColor, fontSize, teamName }) {
+function createSvg({ lines, backgroundColor, fontSize }) {
   const width = 1200;
   const height = 630;
   const centerX = width / 2;

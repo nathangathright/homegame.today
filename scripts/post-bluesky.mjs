@@ -1,4 +1,4 @@
-import { AtpAgent, RichText } from "@atproto/api";
+import { AtpAgent } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fetchLeagueScheduleToday, fetchScheduleWindowCached, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd, getBlueskyHandle } from "../src/lib/mlb.mjs";
@@ -111,8 +111,8 @@ async function main() {
       const latest = await fetchLatestPost(agent, agent.session?.did ?? identifier);
       const teamTimeZone = team?.timezone;
       if (latest?.value?.createdAt) {
-        const lastDateKey = getLocalDateKey(new Date(latest.value.createdAt), teamTimeZone);
-        const nowDateKey = getLocalDateKey(new Date(), teamTimeZone);
+        const lastDateKey = dateKeyInZone(new Date(latest.value.createdAt), teamTimeZone);
+        const nowDateKey = dateKeyInZone(new Date(), teamTimeZone);
         if (lastDateKey === nowDateKey) {
           console.log(`Already posted today for ${team.name} (${slug}) — skipping.`);
           continue;
