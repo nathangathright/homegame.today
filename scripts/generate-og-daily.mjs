@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { Resvg } from "@resvg/resvg-js";
-import { dateKeyInZone, fetchScheduleWindow, computeOgText, computeWindowStartEnd } from "../src/lib/mlb.mjs";
+import { dateKeyInZone, fetchScheduleWindowCached, computeOgText, computeWindowStartEnd } from "../src/lib/mlb.mjs";
 
 const ROOT = path.resolve(process.cwd());
 const TEAMS_PATH = path.join(ROOT, "src", "data", "teams.json");
@@ -131,7 +131,7 @@ async function main() {
     const primaryColor = (team.colors?.[0] ?? "#000000").toString();
 
     try {
-      const apiData = await fetchScheduleWindow(team.id, startIso, endIso);
+      const apiData = await fetchScheduleWindowCached(team.id, startIso, endIso);
       const text = computeOgText(team, apiData);
       const todayKey = dateKeyInZone(new Date(), team?.timezone);
       const outPath = path.join(OUT_DIR, `${slug}-${todayKey}.png`);

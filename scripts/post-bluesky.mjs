@@ -1,7 +1,7 @@
 import { AtpAgent, RichText } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fetchLeagueScheduleToday, fetchScheduleWindow, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd } from "../src/lib/mlb.mjs";
+import { fetchLeagueScheduleToday, fetchScheduleWindowCached, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd, getBlueskyHandle } from "../src/lib/mlb.mjs";
 if (process.env.CI !== "true" && process.env.GITHUB_ACTIONS !== "true") {
   await import("dotenv/config");
 }
@@ -65,7 +65,7 @@ async function main() {
       continue;
     }
     attemptedCount += 1;
-    const identifier = `${slug}.homegame.today`;
+    const identifier = getBlueskyHandle(team);
 
     const agent = new AtpAgent({ service: "https://bsky.social" });
     try {
@@ -78,7 +78,7 @@ async function main() {
 
     try {
       const { startIso, endIso } = computeWindowStartEnd(new Date());
-      const data = await fetchScheduleWindow(team.id, startIso, endIso);
+      const data = await fetchScheduleWindowCached(team.id, startIso, endIso);
       const text = computeStatusForTeam(team, data);
       const pageUrl = `https://homegame.today/${slug}`;
       const postText = text;

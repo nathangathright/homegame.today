@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import teams from "../data/teams.json";
 import "../styles/global.css";
 import { Icon } from 'astro-icon/components';
-import { fetchScheduleWindow, deriveTeamScheduleFacts, computeWindowStartEnd, getLocalDateAndOptionalTime } from "../lib/mlb.mjs";
+import { buildTeamPageData, buildDetailContent } from "../lib/mlb.mjs";
 
 export const prerender = true;
 export async function getStaticPaths() {
@@ -20,13 +20,23 @@ if (!team) {
 
 let data: any = null;
 let error = null;
-let apiUrlString = "";
+let facts: any = { games: [], gamesToday: [], homeGamesToday: [], awayGamesToday: [], nextHomeGame: undefined } as any;
+let pageMeta: { title: string; description: string } = { title: "Team not found | homegame.today", description: "Team not found." };
+let ogImage: string = "";
+let blueskyUrl: string = "";
+let blueskyRssUrl: string = "";
+let jsonLd: any = null;
 
 if (team) {
-  // Fetch a window of upcoming games to determine the next home game
-  const { startIso: todayIso, endIso } = computeWindowStartEnd(new Date());
   try {
-    data = await fetchScheduleWindow(team.id, todayIso, endIso);
+    const built = await buildTeamPageData(team as any, { siteBase: Astro.site });
+    data = { __built: true } as any; // indicator not used further
+    facts = built.facts;
+    pageMeta = built.meta;
+    ogImage = built.ogImage;
+    blueskyUrl = built.bluesky.profile;
+    blueskyRssUrl = built.bluesky.rss;
+    jsonLd = built.jsonLd;
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
   }
@@ -38,20 +48,7 @@ type ApiVenue = { name?: string };
 type ApiGame = { teams?: ApiGameTeams; gameDate?: string; venue?: ApiVenue };
 type ApiDate = { date?: string; games?: ApiGame[] };
 
-const facts = team ? deriveTeamScheduleFacts(team, data) : { games: [], gamesToday: [], homeGamesToday: [], awayGamesToday: [], nextHomeGame: undefined } as any;
-const games: ApiGame[] = (facts.games ?? []) as ApiGame[];
-const gamesToday: ApiGame[] = (facts.gamesToday ?? []) as ApiGame[];
 const homeGamesToday: ApiGame[] = (facts.homeGamesToday ?? []) as ApiGame[];
-const awayGamesToday: ApiGame[] = (facts.awayGamesToday ?? []) as ApiGame[];
-const nextHomeGame: ApiGame | undefined = facts.nextHomeGame as ApiGame | undefined;
-
-function formatTime(iso: string) {
-  try {
-    return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-  } catch {
-    return iso;
-  }
-}
 
 // Always show today's date at the top of the page
 const pageDateIso = new Date().toISOString().slice(0, 10);
@@ -65,87 +62,11 @@ function formatDateIsoToLong(isoDate: string) {
 const pageDateLabel = formatDateIsoToLong(pageDateIso);
 const siteName = "homegame.today";
 const teamName = team?.name ?? "Team";
-const answer = team ? (homeGamesToday.length > 0 ? "Yes" : "No") : "";
+const hasHomeToday = homeGamesToday.length > 0;
 const teamTimeZone = (team as any)?.timezone as string | undefined;
-const nextHomeText = nextHomeGame?.gameDate
-  ? (() => {
-      const dt = new Date(nextHomeGame.gameDate);
-      const datePart = dt.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: teamTimeZone });
-      const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-      return `The next game at ${team?.venue ?? "their stadium"} will be on ${datePart} at ${timePart}.`;
-    })()
-  : `The next game at ${team?.venue ?? "their stadium"} is not yet scheduled.`;
-const subtextMsg = team
-  ? homeGamesToday.length > 0
-    ? (() => {
-        const dtIso = (homeGamesToday[0] as any)?.gameDate as string | undefined;
-        if (!dtIso) return `Yes, today’s game at ${team?.venue ?? "their stadium"} is scheduled.`;
-        const dt = new Date(dtIso);
-        const timePart = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-        return `Yes, today’s game at ${team?.venue ?? "their stadium"} is scheduled for ${timePart}.`;
-      })()
-    : nextHomeText
-  : "";
-const pageTitle = team
-  ? `${teamName} — ${answer} | ${siteName}`
-  : `Team not found | ${siteName}`;
-const pageDescription = team
-  ? `${subtextMsg}`
-  : "Team not found.";
+const pageTitle = pageMeta.title;
+const pageDescription = pageMeta.description;
 const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
-// Use dated OG image filename to bust social caches, using team-local date
-const ogDateKey = (() => {
-  try {
-    return new Intl.DateTimeFormat("en-CA", {
-      timeZone: teamTimeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date());
-  } catch {
-    return new Date().toISOString().slice(0, 10);
-  }
-})();
-const ogImage = site ? new URL(`/og/${slug}-${ogDateKey}.png`, site).toString() : `/og/${slug}-${ogDateKey}.png`;
-
-// Bluesky profile URL for this team
-const blueskyUrl = team ? `https://bsky.app/profile/${team.slug}.homegame.today` : "";
-
-// JSON-LD SportsEvent structured data for today’s game (home preferred, otherwise away)
-const selectedGame: ApiGame | undefined = (homeGamesToday[0] ?? awayGamesToday[0]) as ApiGame | undefined;
-const isHome = !!homeGamesToday[0];
-const opponentName = selectedGame
-  ? isHome
-    ? selectedGame?.teams?.away?.team?.name
-    : selectedGame?.teams?.home?.team?.name
-  : undefined;
-const gameStartIso =
-  selectedGame?.gameDate ?? (pageDateIso ? `${pageDateIso}T00:00:00Z` : undefined);
-
-let jsonLd: any = null;
-if (selectedGame && gameStartIso) {
-  jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    name: isHome
-      ? `${teamName} vs ${opponentName ?? "Opponent"}`
-      : `${opponentName ?? "Opponent"} vs ${teamName}`,
-    sport: "Baseball",
-    startDate: gameStartIso,
-    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    homeTeam: {
-      "@type": "SportsTeam",
-      name: isHome ? teamName : (selectedGame?.teams?.home?.team?.name ?? "Home Team"),
-    },
-    awayTeam: {
-      "@type": "SportsTeam",
-      name: isHome ? (selectedGame?.teams?.away?.team?.name ?? "Away Team") : teamName,
-    },
-  };
-  if (isHome && team?.venue) {
-    jsonLd.location = { "@type": "Place", name: team.venue };
-  }
-}
 ---
 
 <Layout
@@ -177,53 +98,35 @@ if (selectedGame && gameStartIso) {
       <>
         {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
         <div class="h-dvh grid place-items-center text-center">
-          <header class="px-8 flex justify-center w-full relative">
-            <a href="/" class="block"><Icon name="ph:arrow-left" class="w-8 h-8" /></a>
-            <hr class="invisible flex-1">
-            <time class="text-[clamp(1rem,2.5vw,2rem)] leading-8 opacity-90 text-pretty absolute inset-0 h-8 -z-1" datetime={pageDateIso}>
+          <header class="px-8 flex justify-center w-full">
+            <time class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 text-pretty" datetime={pageDateIso}>
               {pageDateLabel}
             </time>
+            
+          </header>
+          <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">{hasHomeToday ? "Yes" : "No"}</div>
+          <footer>
+            <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 px-8 text-pretty">
+              {(() => {
+                const detail = buildDetailContent(team as any, facts as any);
+                if (detail.fallback) return detail.fallback;
+                return (
+                  <>
+                    {detail.pre}<time class="whitespace-nowrap" datetime={detail.iso}>{detail.label}</time>.
+                  </>
+                );
+              })()}
+            </div>
+            <nav class="flex justify-center gap-4 mt-4">
+            <a aria-label="Open Github repo" rel="noopener noreferrer" target="_blank" href="https://github.com/nathangathright/homegame.today" class="block"><Icon name="ph:github-logo-duotone" class="w-8 h-8" /></a>
             {blueskyUrl && (
               <>
-                <a target="_blank" href={blueskyUrl} class="block"><Icon name="ph:butterfly-duotone" class="w-8 h-8" /></a>
-                <a target="_blank" href={`${blueskyUrl}/rss`} class="block"><Icon name="ph:rss-duotone" class="w-8 h-8" /></a>
+                <a aria-label="Open team Bluesky profile" rel="noopener noreferrer" target="_blank" href={blueskyUrl} class="block"><Icon name="ph:butterfly-duotone" class="w-8 h-8" /></a>
+                <a aria-label="Open team Bluesky RSS" rel="noopener noreferrer" target="_blank" href={blueskyRssUrl} class="block"><Icon name="ph:rss-duotone" class="w-8 h-8" /></a>
               </>
             )}
-          </header>
-          <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">{homeGamesToday.length > 0 ? "Yes" : "No"}</div>
-          <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 px-8 text-pretty">
-            {
-              homeGamesToday.length > 0 ? (
-                (() => {
-                  const dtIso = (homeGamesToday[0] as any)?.gameDate as string | undefined;
-                  if (!dtIso) {
-                    return `Yes, game at ${team?.venue ?? "their stadium"} today.`;
-                  }
-                  const dt = new Date(dtIso);
-                  const label = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: teamTimeZone });
-                  const iso = dt.toISOString();
-                  return (
-                    <>
-                      Today’s game at {team?.venue ?? "their stadium"} is scheduled for <time class="whitespace-nowrap" datetime={iso}>{label}</time>.
-                    </>
-                  );
-                })()
-              ) : nextHomeGame?.gameDate ? (
-                (() => {
-                  const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(nextHomeGame as any, teamTimeZone, { dateStyle: "medium", timeStyle: "short" });
-                  const dt = new Date((nextHomeGame as any).gameDate as string);
-                  const iso = dt.toISOString();
-                  return (
-                    <>
-                      The next game at {team?.venue ?? "their stadium"} is scheduled for <time class="whitespace-nowrap" datetime={iso}>{datePart}{timeCertain && timePart ? ` at ${timePart}` : ""}</time>.
-                    </>
-                  );
-                })()
-              ) : (
-                `The next game at ${team?.venue ?? "their stadium"} is not yet scheduled.`
-              )
-            }
-          </div>
+            </nav>
+          </footer>
         </div>
       </>
     )

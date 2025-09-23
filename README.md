@@ -1,136 +1,112 @@
 # homegame.today
 
+[![Build](https://github.com/nathangathright/homegame.today/actions/workflows/build.yml/badge.svg)](https://github.com/nathangathright/homegame.today/actions/workflows/build.yml)
+[![Lint](https://github.com/nathangathright/homegame.today/actions/workflows/lint.yml/badge.svg)](https://github.com/nathangathright/homegame.today/actions/workflows/lint.yml)
+
 Find out if your MLB team has a home game today.
 
-- **Live site**: `https://homegame.today`
-- **Tech**: Astro 5, Tailwind CSS 4, TypeScript-enabled Astro components
+- Live site: `https://homegame.today`
+- Tech: Astro 5, Tailwind CSS 4, TypeScript-enabled Astro components
 
-## Features
+## What this repo contains
 
-- **Team directory** with search
-- **Per-team pages** showing whether there is a home game today
-- **Structured data (JSON‑LD)** for game pages
-- **Static generation (SSG)** for GitHub Pages hosting
-- **Daily rebuild** via GitHub Actions to keep results fresh
+- Static site (SSG) with per‑team pages
+- Daily OG image generation (Resvg rendering)
+- Optional daily Bluesky posting per team
+- Shared MLB utility for fetching/formatting schedule data
+- Small SEO utility for JSON‑LD
 
-## Getting started
+## Architecture at a glance
 
-### Prerequisites
+- `src/lib/mlb.mjs`
+  - Fetch/date helpers: `computeWindowStartEnd`, `fetchScheduleWindowCached`, `dateKeyInZone`
+  - Derivers/formatters: `deriveTeamScheduleFacts`, `formatTeamStatus`, `buildDetailContent`, `buildTeamPageMeta`
+  - Page helpers: `selectGameForTeamToday`, `getOgImagePath`, `buildTeamPageData`
+  - Bluesky helpers: `getBlueskyHandle`, `getBlueskyProfileUrl`, `getBlueskyRssUrl`
+  - Config: `HORIZON_MONTHS = 9` (schedule window)
+  - TBD time handling: `isStartTimeTbd`, `getLocalDateAndOptionalTime`
+- `src/lib/seo.mjs`
+  - `buildSportsEventJsonLd` for `SportsEvent` schema
+- `src/pages/[team].astro`
+  - Thin page that calls `buildTeamPageData` and renders values
+- `src/pages/index.astro`
+  - Team directory + client‑side search
+- `src/pages/api/team/[slug].json.ts`
+  - Static JSON endpoint mirroring page data (useful for debugging/clients)
+- `scripts/generate-og-daily.mjs`
+  - Builds dated OG images into `public/og` (dev) and `dist/og` (prod)
+- `scripts/post-bluesky.mjs`
+  - Posts a daily status per team (skips teams without credentials)
 
-- Node.js 20+
-- pnpm 9+
+## Local development
 
-### Install
+Prereqs: Node 20+, pnpm 9+
 
+- Install: `pnpm install`
+- Dev: `pnpm dev` (predev generates OG images in `public/og`)
+- Build: `pnpm build` (also generates OG images in `dist/og`)
+- Preview: `pnpm preview`
+
+Utilities:
+
+- Lint: `pnpm lint` / `pnpm lint:fix`
+- Format: `pnpm format` / `pnpm format:check`
+
+## Contributing
+
+- Centralize logic in `src/lib/mlb.mjs` instead of pages/scripts when possible.
+- Keep `[team].astro` thin; if you find logic there, extract a helper.
+- Surface new page data via `buildTeamPageData` for consistency.
+- Use explicit, readable helper names; add JSDoc where helpful; avoid deep nesting.
+- Run `pnpm lint` and ensure CI (Lint workflow) passes before opening a PR.
+
+## Implementation notes
+
+- Timezone‑aware date keys and formatting
+  - We compute a team‑local date key for OG filenames and for “today” calculations.
+- Schedule window
+  - Controlled by `HORIZON_MONTHS = 9` in `src/lib/mlb.mjs`.
+- TBD/placeholder game times
+  - Many far‑future games have placeholder times (e.g., 03:33Z). We detect these and omit the time in copy.
+- OG text wrapping
+  - Only date/time fragments use non‑breaking spaces; regular words can wrap normally.
+- Caching
+  - `fetchScheduleWindowCached` avoids duplicate MLB requests within one run.
+
+## Data
+
+- Teams: `src/data/teams.json` with `id`, `name`, `slug`, `colors`, `venue`, `timezone`.
+
+## Bluesky (for contributors)
+
+- CI posts only when credentials exist; local manual test for a team:
 ```bash
-pnpm install
+BLUESKY_PASSWORD_CUBS=your-app-password pnpm post:bluesky
 ```
+- Posts use `formatTeamStatus` and attach the daily OG if available.
 
-### Develop
+## Static API (optional)
 
-```bash
-pnpm dev
-```
-
-Visit `http://localhost:4321`.
-
-### Build
-
-```bash
-pnpm build
-```
-
-### Preview (serve the built site locally)
-
-```bash
-pnpm preview
-```
+- `GET /api/team/[slug].json` returns the same data used to render pages.
 
 ## Project structure
 
 ```
 src/
   data/teams.json        # MLB team ids, slugs, names, colors, venue
-  layouts/Layout.astro   # Base HTML layout, meta tags and theming
-  pages/index.astro      # Team list with client-side search
-  pages/[team].astro     # Static per-team page (SSG with getStaticPaths)
+  lib/mlb.mjs            # MLB helpers (fetching, formatting, page builders)
+  lib/seo.mjs            # JSON‑LD builder(s)
+  pages/index.astro      # Team list with search
+  pages/[team].astro     # Thin team page (SSG)
+  pages/api/...          # Static JSON endpoint
+  layouts/Layout.astro   # Base HTML layout and meta tags
   styles/global.css      # Global styles
+scripts/
+  generate-og-daily.mjs  # Renders OG images
+  post-bluesky.mjs       # Optional daily posts
 ```
 
-Key config:
+## Roadmap / multi‑sport readiness
 
-- `astro.config.mjs` sets `site: "https://homegame.today"` for absolute URLs/canonicals.
-
-## Data sources
-
-- Schedules from the [MLB StatsAPI](https://statsapi.mlb.com/) (no key required)
-- Team metadata from `src/data/teams.json`
-
-## Deployment: GitHub Pages + custom domain
-
-This repo is set up to deploy to GitHub Pages and rebuild daily.
-
-1) Workflow
-
-- See `.github/workflows/deploy.yml`.
-- Triggers on pushes to `main`, manual runs, and a daily cron at 05:00 UTC.
-
-2) Custom domain
-
-- Add `public/CNAME` with:
-
-```
-homegame.today
-```
-
-- In GitHub → Settings → Pages, set the Custom domain to `homegame.today` and enable “Enforce HTTPS”.
-
-3) DNS records (apex)
-
-Point `homegame.today` A records to GitHub Pages:
-
-```
-185.199.108.153
-185.199.109.153
-185.199.110.153
-185.199.111.153
-```
-
-Optional `www`:
-
-- CNAME `www → <username>.github.io`
-
-## Bluesky automated posts
-
-- Each team uses its own Bluesky account with handle `@<slug>.homegame.today` (e.g., `@cubs.homegame.today`).
-- Add a repo secret for each team you want to post for: `BLUESKY_PASSWORD_<SLUG>` (e.g., `BLUESKY_PASSWORD_CUBS`). Teams without a password secret are skipped.
-- Posts run automatically on the daily scheduled workflow after the build. Manual runs and pushes do not post.
-- Posts are plain text and include no links. Message examples:
-  - "Chicago Cubs — Home game today at Wrigley Field."
-  - "Chicago Cubs — No home game today."
-  - "Chicago Cubs — No game today."
-- Local test (example for Cubs):
-
-```
-BLUESKY_PASSWORD_CUBS=your-app-password pnpm post:bluesky
-```
-
-
-## How “daily updates” work
-
-- Pages are statically generated; the per‑team route uses `getStaticPaths` and fetches the MLB schedule at build time.
-- The GitHub Actions cron rebuilds the site once per day so the “today” result stays accurate.
-- To change the rebuild time, edit the `cron` expression in `.github/workflows/deploy.yml`.
-
-## Scripts
-
-- `pnpm dev`: Start the dev server
-- `pnpm build`: Build for production
-- `pnpm preview`: Preview the production build
-- `pnpm format`: Format with Prettier
-- `pnpm format:check`: Check formatting
-
-## Notes
-
-- If you fork/rename or change the domain, update `site` in `astro.config.mjs` and the `public/CNAME` file.
-- If you host somewhere other than GitHub Pages, remove or replace the Pages workflow and configure your host accordingly.
+- MLB helpers encapsulate league‑specific logic.
+- To add another sport, mirror the MLB helper shapes (facts, status formatter, detail builder) and switch per‑sport.

@@ -1,4 +1,5 @@
 // Shared MLB helpers for schedule fetching and formatting
+import { buildSportsEventJsonLd } from "./seo.mjs";
 
 export function dateKeyInZone(d, timeZone) {
   try {
@@ -53,76 +54,6 @@ export function deriveTeamScheduleFacts(team, apiData) {
   return { games, teamTimeZone, todayKey, gamesToday, homeGamesToday, awayGamesToday, nextHomeGame };
 }
 
-export function computeOgText(team, apiData) {
-  const { games, teamTimeZone, todayKey } = deriveTeamScheduleFacts(team, apiData);
-  const gamesToday = games.filter((g) => {
-    const iso = g?.gameDate ? dateKeyInZone(new Date(g.gameDate), teamTimeZone) : undefined;
-    return iso === todayKey;
-  });
-  const homeGamesToday = gamesToday.filter((g) => g?.teams?.home?.team?.id === team?.id);
-  const venueName = team?.venue || "their stadium";
-
-  if (homeGamesToday.length > 0) {
-    const { timePart, timeCertain } = getLocalDateAndOptionalTime(homeGamesToday[0], teamTimeZone, { timeStyle: "short" });
-    return timeCertain && timePart
-      ? `Yes, today’s game at ${venueName} is scheduled for ${String(timePart).replace(/ /g, "\u00A0")}.`
-      : `Yes, today’s game at ${venueName} is scheduled.`;
-  }
-
-  const nowTs = Date.now();
-  const upcomingHomeGames = games
-    .filter((g) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
-    .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
-  const nextHome = upcomingHomeGames.find((g) => new Date(g.gameDate).getTime() >= nowTs);
-  if (nextHome?.gameDate) {
-    const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(nextHome, teamTimeZone, { dateStyle: "medium", timeStyle: "short" });
-    const safeDate = String(datePart).replace(/ /g, "\u00A0");
-    if (timeCertain && timePart) {
-      const safeTime = String(timePart).replace(/ /g, "\u00A0");
-      return `No, the next game at ${venueName} is scheduled for ${safeDate} at\u00A0${safeTime}.`;
-    }
-    return `No, the next game at ${venueName} is scheduled for ${safeDate}.`;
-  }
-  return `No, the next game at ${venueName} is not yet scheduled.`;
-}
-
-export function computeStatusForTeam(team, apiData) {
-  const dates = Array.isArray(apiData?.dates) ? apiData.dates : [];
-  const games = dates.flatMap((d) => Array.isArray(d?.games) ? d.games : []);
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const gamesToday = games.filter((g) => {
-    const iso = g?.gameDate ? new Date(g.gameDate).toISOString().slice(0, 10) : undefined;
-    return iso === todayIso;
-  });
-  const homeGamesToday = gamesToday.filter((g) => g?.teams?.home?.team?.id === team?.id);
-
-  const venueName = team?.venue || undefined;
-  const teamTimeZone = team?.timezone;
-
-  let text;
-  if (homeGamesToday.length > 0) {
-    const { timePart, timeCertain } = getLocalDateAndOptionalTime(homeGamesToday[0], teamTimeZone, { timeStyle: "short" });
-    text = timeCertain && timePart
-      ? `${team.name} — Yes, today’s game at ${venueName ?? "their stadium"} is scheduled for ${timePart}.`
-      : `${team.name} — Yes, there’s a game at ${venueName ?? "their stadium"} scheduled for today.`;
-  } else {
-    const nowTs = Date.now();
-    const upcomingHomeGames = games
-      .filter((g) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
-      .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
-    const nextHome = upcomingHomeGames.find((g) => new Date(g.gameDate).getTime() >= nowTs);
-    if (nextHome?.gameDate) {
-      const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(nextHome, teamTimeZone, { dateStyle: "medium", timeStyle: "short" });
-      text = timeCertain && timePart
-        ? `${team.name} — No, the next game at ${venueName ?? "their stadium"} is scheduled for ${datePart} at ${timePart}.`
-        : `${team.name} — No, the next game at ${venueName ?? "their stadium"} is scheduled for ${datePart}.`;
-    } else {
-      text = `${team.name} — No, the next game at ${venueName ?? "their stadium"} is not yet scheduled.`;
-    }
-  }
-  return text;
-}
-
 // Window horizon configuration
 export const HORIZON_MONTHS = 9; // fetch schedule up to 9 months ahead
 export function computeWindowStartEnd(fromDate = new Date(), months = HORIZON_MONTHS) {
@@ -165,6 +96,147 @@ export function getLocalDateAndOptionalTime(game, timeZone, options = {}) {
     ? d.toLocaleTimeString(undefined, { timeStyle, timeZone })
     : undefined;
   return { datePart, timePart, timeCertain };
+}
+
+// Bluesky helpers
+export const getBlueskyHandle = (team) => `${team.slug}.homegame.today`;
+export const getBlueskyProfileUrl = (team) => `https://bsky.app/profile/${getBlueskyHandle(team)}`;
+export const getBlueskyRssUrl = (team) => `${getBlueskyProfileUrl(team)}/rss`;
+
+// Per-run schedule window cache to avoid duplicate HTTP fetches
+const _scheduleWindowCache = new Map();
+export async function fetchScheduleWindowCached(teamId, startIso, endIso) {
+  const key = `${teamId}:${startIso}:${endIso}`;
+  if (_scheduleWindowCache.has(key)) return _scheduleWindowCache.get(key);
+  const data = await fetchScheduleWindow(teamId, startIso, endIso);
+  _scheduleWindowCache.set(key, data);
+  return data;
+}
+
+// Unified status formatter used by OG and Bluesky
+export function formatTeamStatus(team, apiData, opts = {}) {
+  const { includeTeamName = false, nbsp = false, dateStyle = "medium" } = opts;
+  const venue = team?.venue ?? "their stadium";
+  const { games, teamTimeZone, todayKey } = deriveTeamScheduleFacts(team, apiData);
+  const isToday = (g) => (g?.gameDate ? dateKeyInZone(new Date(g.gameDate), teamTimeZone) === todayKey : false);
+  const homeToday = games.filter(isToday).filter((g) => g?.teams?.home?.team?.id === team?.id);
+
+  const prefix = includeTeamName ? `${team.name} — ` : "";
+  const space = nbsp ? "\u00A0" : " ";
+  const nb = (s) => (nbsp ? String(s).replace(/ /g, "\u00A0") : String(s));
+
+  if (homeToday.length > 0) {
+    const { timePart, timeCertain } = getLocalDateAndOptionalTime(homeToday[0], teamTimeZone, { timeStyle: "short" });
+    return prefix + (timeCertain && timePart
+      ? `Yes, today’s game at ${venue} is scheduled for ${nb(timePart)}.`
+      : `Yes, today’s game at ${venue} is scheduled.`);
+  }
+
+  const nowTs = Date.now();
+  const upcomingHome = games
+    .filter((g) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
+    .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime())
+    .find((g) => new Date(g.gameDate).getTime() >= nowTs);
+
+  if (upcomingHome?.gameDate) {
+    const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(upcomingHome, teamTimeZone, { dateStyle, timeStyle: "short" });
+    const safeDate = nb(datePart);
+    if (timeCertain && timePart) {
+      const safeTime = nb(timePart);
+      return prefix + `No, the next game at ${venue} is scheduled for ${safeDate} at${space}${safeTime}.`;
+    }
+    return prefix + `No, the next game at ${venue} is scheduled for ${safeDate}.`;
+  }
+
+  return prefix + `No, the next game at ${venue} is not yet scheduled.`;
+}
+
+// Backwards-compatible wrappers
+export function computeOgText(team, apiData) {
+  return formatTeamStatus(team, apiData, { includeTeamName: false, nbsp: true, dateStyle: "medium" });
+}
+
+export function computeStatusForTeam(team, apiData) {
+  return formatTeamStatus(team, apiData, { includeTeamName: true, nbsp: false, dateStyle: "medium" });
+}
+
+// Selects the primary game to feature for JSON-LD (home preferred, else away)
+export function selectGameForTeamToday(facts) {
+  const selected = (facts?.homeGamesToday?.[0] ?? facts?.awayGamesToday?.[0]) || undefined;
+  const isHome = !!facts?.homeGamesToday?.[0];
+  return { selectedGame: selected, isHome };
+}
+
+// OG image path for today using team-local date key
+export function getOgImagePath(slug, timeZone) {
+  const dateKey = dateKeyInZone(new Date(), timeZone);
+  return `/og/${slug}-${dateKey}.png`;
+}
+
+// Build page title and description for a team page
+export function buildTeamPageMeta(team, apiData) {
+  const siteName = "homegame.today";
+  const teamName = team?.name ?? "Team";
+  const message = formatTeamStatus(team, apiData, { includeTeamName: false, nbsp: false, dateStyle: "medium" });
+  // Title format: "<Team> — Yes|No | homegame.today"
+  const hasHome = /^(Yes)/.test(message);
+  const answer = hasHome ? "Yes" : "No";
+  const title = `${teamName} — ${answer} | ${siteName}`;
+  const description = message;
+  return { title, description };
+}
+
+// Build full team page data (SSG-friendly; no network outside provided helpers)
+export async function buildTeamPageData(team, options = {}) {
+  const { siteBase } = options;
+  const { startIso, endIso } = computeWindowStartEnd(new Date());
+  const data = await fetchScheduleWindowCached(team.id, startIso, endIso);
+  const facts = deriveTeamScheduleFacts(team, data);
+  const meta = buildTeamPageMeta(team, data);
+
+  const ogPath = getOgImagePath(team.slug, team?.timezone);
+  const ogImage = siteBase ? new URL(ogPath, siteBase).toString() : ogPath;
+
+  const { selectedGame, isHome } = selectGameForTeamToday(facts);
+  const pageDateIso = new Date().toISOString().slice(0, 10);
+  const jsonLd = buildSportsEventJsonLd({ team, selectedGame, isHome, fallbackDateIso: pageDateIso });
+
+  const bluesky = {
+    profile: getBlueskyProfileUrl(team),
+    rss: getBlueskyRssUrl(team),
+  };
+
+  return { meta, ogImage, bluesky, facts, jsonLd };
+}
+
+// Build detail content fragments for the team page under the Yes/No
+export function buildDetailContent(team, facts) {
+  const venue = team?.venue ?? "their stadium";
+  const tz = team?.timezone;
+
+  // Home game today
+  const homeToday = Array.isArray(facts?.homeGamesToday) ? facts.homeGamesToday : [];
+  if (homeToday.length > 0) {
+    const g = homeToday[0];
+    const dtIso = g?.gameDate;
+    if (!dtIso) {
+      return { fallback: `Yes, game at ${venue} today.` };
+    }
+    const dt = new Date(dtIso);
+    const label = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: tz });
+    return { pre: `Today’s game at ${venue} is scheduled for `, iso: dt.toISOString(), label };
+  }
+
+  // Next upcoming home game
+  const nextHome = facts?.nextHomeGame;
+  if (nextHome?.gameDate) {
+    const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(nextHome, tz, { dateStyle: "medium", timeStyle: "short" });
+    const dt = new Date(nextHome.gameDate);
+    const label = timeCertain && timePart ? `${datePart} at ${timePart}` : `${datePart}`;
+    return { pre: `The next game at ${venue} is scheduled for `, iso: dt.toISOString(), label };
+  }
+
+  return { fallback: `The next game at ${venue} is not yet scheduled.` };
 }
 
 
