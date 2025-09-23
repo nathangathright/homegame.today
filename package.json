@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@iconify-json/ph": "^1.2.2",
+    "@eslint/js": "^9.14.0",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "@typescript-eslint/parser": "^8.8.1",
     "eslint": "^9.14.0",
