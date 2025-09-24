@@ -34,8 +34,10 @@ function getSlugFromHost(hostname) {
 function buildActorUrlsForSlug(slug) {
   const handle = `${slug}.homegame.today`;
   const actorAp = `https://bsky.brid.gy/ap/@${handle}`;
+  const profileBridgy = `https://bsky.brid.gy/@${handle}`;
   const profileHtml = `https://bsky.app/profile/${handle}`;
-  return { actorAp, profileHtml };
+  const acctAlias = `acct:${handle}@bsky.brid.gy`;
+  return { actorAp, profileBridgy, profileHtml, acctAlias };
 }
 
 async function handleHostMeta(origin) {
@@ -68,12 +70,18 @@ async function handleWebfinger(url) {
   const did = team?.did;
   if (!did) return notFound("Unknown account");
 
-  const { actorAp, profileHtml } = buildActorUrlsForSlug(slug);
+  const { actorAp, profileBridgy, profileHtml, acctAlias } = buildActorUrlsForSlug(slug);
   const body = {
     subject: `acct:${slug}@homegame.today`,
-    aliases: [actorAp, profileHtml],
+    aliases: [
+      actorAp,
+      profileBridgy,
+      profileHtml,
+      acctAlias,
+    ],
     links: [
       { rel: "self", type: "application/activity+json", href: actorAp },
+      { rel: "http://webfinger.net/rel/profile-page", type: "text/html", href: profileBridgy },
       { rel: "http://webfinger.net/rel/profile-page", type: "text/html", href: profileHtml },
     ],
   };
