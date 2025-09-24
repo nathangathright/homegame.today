@@ -60,7 +60,11 @@ async function handleAtprotoDid(hostname) {
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const { hostname, pathname } = url;
+    const fwdHost = request.headers.get("x-forwarded-host");
+    const hostHeader = request.headers.get("host");
+    const hostValue = (fwdHost && fwdHost.length > 0) ? fwdHost : hostHeader;
+    const hostname = (hostValue ? hostValue.split(":")[0] : url.hostname) || url.hostname;
+    const { pathname } = url;
 
     // AT Proto handle verification on team subdomains
     if (pathname === "/.well-known/atproto-did") {
