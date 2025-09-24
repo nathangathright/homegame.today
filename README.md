@@ -87,6 +87,8 @@ BLUESKY_PASSWORD_CUBS=your-app-password pnpm post:bluesky
 - Posts use `formatTeamStatus` and attach the daily OG if available.
 
 ## Static API (optional)
+- `GET /api/team/[slug].json` returns the same data used to render pages.
+
 ## ActivityPub / AT Proto Well-Known
 
 This repo includes a Cloudflare Worker that enables:
@@ -111,9 +113,6 @@ Deploy requirements:
 - Secrets in repo: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
 - Wildcard route for `*.homegame.today/.well-known/atproto-did` and apex `/.well-known/*` are set in `wrangler.toml`
 - DIDs live in `src/data/teams.json` under the `did` field
-
-
-- `GET /api/team/[slug].json` returns the same data used to render pages.
 
 ## Project structure
 

@@ -1,4 +1,5 @@
-import teams from "../src/data/teams.json" assert { type: "json" };
+// Avoid ESM import assertion to keep ESLint happy; workers bundler will inline this
+import teams from "../src/data/teams.json";
 
 function jsonResponse(body, init = {}) {
   return new Response(JSON.stringify(body), {
@@ -92,6 +93,19 @@ export default {
   async fetch(request) {
     const url = new URL(request.url);
     const { hostname, pathname } = url;
+
+    // Redirect team subdomain root to canonical apex path, preserve query
+    // e.g., https://cubs.homegame.today/ -> https://homegame.today/cubs
+    if (hostname.endsWith(".homegame.today") && hostname !== "homegame.today") {
+      const isWellKnown = pathname.startsWith("/.well-known/");
+      if (!isWellKnown && (pathname === "/" || pathname === "")) {
+        const slug = getSlugFromHost(hostname);
+        if (slug) {
+          const redirectTo = new URL(`https://homegame.today/${slug}${url.search}`);
+          return Response.redirect(redirectTo.toString(), 301);
+        }
+      }
+    }
 
     // Host-meta and WebFinger only on apex
     if (hostname === "homegame.today") {

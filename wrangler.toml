@@ -1,10 +1,10 @@
 name = "homegame-wellknown"
 main = "cf/worker.mjs"
 compatibility_date = "2025-09-24"
+zone_name = "homegame.today"
+workers_dev = true
 
 routes = [
-  { pattern = "homegame.today/.well-known/*", zone_name = "homegame.today" },
-  { pattern = "*.homegame.today/.well-known/atproto-did", zone_name = "homegame.today" },
+  "homegame.today/.well-known/*",
+  "*.homegame.today/.well-known/atproto-did",
 ]
-
-
