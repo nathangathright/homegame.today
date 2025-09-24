@@ -37,7 +37,8 @@ function buildActorUrlsForSlug(slug) {
   const profileBridgy = `https://bsky.brid.gy/@${handle}`;
   const profileHtml = `https://bsky.app/profile/${handle}`;
   const acctAlias = `acct:${handle}@bsky.brid.gy`;
-  return { actorAp, profileBridgy, profileHtml, acctAlias };
+  const acctLocal = `acct:${slug}@homegame.today`;
+  return { actorAp, profileBridgy, profileHtml, acctAlias, acctLocal };
 }
 
 async function handleHostMeta(origin) {
@@ -70,14 +71,15 @@ async function handleWebfinger(url) {
   const did = team?.did;
   if (!did) return notFound("Unknown account");
 
-  const { actorAp, profileBridgy, profileHtml, acctAlias } = buildActorUrlsForSlug(slug);
+  const { actorAp, profileBridgy, profileHtml, acctAlias, acctLocal } = buildActorUrlsForSlug(slug);
   const body = {
-    subject: `acct:${slug}@homegame.today`,
+    subject: acctAlias,
     aliases: [
       actorAp,
       profileBridgy,
       profileHtml,
       acctAlias,
+      acctLocal,
     ],
     links: [
       { rel: "self", type: "application/activity+json", href: actorAp },
