@@ -1,7 +1,7 @@
 import { AtpAgent } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fetchLeagueScheduleToday, fetchScheduleWindowCached, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd, getBlueskyHandle } from "../src/lib/mlb.mjs";
+import { fetchLeagueScheduleToday, fetchScheduleWindowCached, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd, getBlueskyHandle, getBlueskyDid } from "../src/lib/mlb.mjs";
 if (process.env.CI !== "true" && process.env.GITHUB_ACTIONS !== "true") {
   await import("dotenv/config");
 }
@@ -58,6 +58,13 @@ async function main() {
     if (!slug) {
       continue;
     }
+    // Skip teams without a DID
+    const did = getBlueskyDid(team);
+    if (!did) {
+      console.warn(`Skipping ${team.name} (${slug}) — missing DID.`);
+      continue;
+    }
+
     const envKey = `BLUESKY_PASSWORD_${slug.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
     const password = process.env[envKey];
     if (!password) {

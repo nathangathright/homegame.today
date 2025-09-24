@@ -5,7 +5,8 @@
     "slug": "diamondbacks",
     "colors": ["#aa182c", "#000000"],
     "venue": "Chase Field",
-    "timezone": "America/Phoenix"
+    "timezone": "America/Phoenix",
+    "did": "did:plc:a7gef6ki6dudyn2unmmtz47y"
   },
   {
     "id": 133,
@@ -13,7 +14,8 @@
     "slug": "athletics",
     "colors": ["#003831", "#efb21e"],
     "venue": "Sutter Health Park",
-    "timezone": "America/Los_Angeles"
+    "timezone": "America/Los_Angeles",
+    "did": "did:plc:ghp5w2l6uuigkv4kjutzvd4h"
   },
   {
     "id": 144,
@@ -21,7 +23,8 @@
     "slug": "braves",
     "colors": ["#0c2340", "#ba0c2f"],
     "venue": "Truist Park",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:bteygzjkvjlndgfdg5dmukr5"
   },
   {
     "id": 110,
@@ -29,7 +32,8 @@
     "slug": "orioles",
     "colors": ["#df4601", "#000000"],
     "venue": "Oriole Park at Camden Yards",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:hbatwaxdrqd4kh4jq5nviogj"
   },
   {
     "id": 111,
@@ -37,7 +41,8 @@
     "slug": "redsox",
     "colors": ["#0d2b56", "#bd3039"],
     "venue": "Fenway Park",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:6qvbgmthwgg55ukgyazsrgex"
   },
   {
     "id": 112,
@@ -45,7 +50,8 @@
     "slug": "cubs",
     "colors": ["#0e3386", "#cc3433"],
     "venue": "Wrigley Field",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "did": "did:plc:xv6uusyawu3tyn7upw22mw24"
   },
   {
     "id": 145,
@@ -53,7 +59,8 @@
     "slug": "whitesox",
     "colors": ["#000000", "#c4ced4"],
     "venue": "Guaranteed Rate Field",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "did": "did:plc:6xmiwari76ljqzfjt5ealqgo"
   },
   {
     "id": 113,
@@ -61,7 +68,8 @@
     "slug": "reds",
     "colors": ["#c6011f", "#ffffff"],
     "venue": "Great American Ball Park",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:mr33il35rvwcwrtck6ubwm4u"
   },
   {
     "id": 114,
@@ -69,7 +77,8 @@
     "slug": "guardians",
     "colors": ["#002b5c", "#e31937"],
     "venue": "Progressive Field",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:7nogaol5vhgq7d3fj6l3wdhm"
   },
   {
     "id": 115,
@@ -77,7 +86,8 @@
     "slug": "rockies",
     "colors": ["#33006f", "#000000"],
     "venue": "Coors Field",
-    "timezone": "America/Denver"
+    "timezone": "America/Denver",
+    "did": "did:plc:g6gra7oyygr6mfn457mte2qu"
   },
   {
     "id": 116,
@@ -85,7 +95,8 @@
     "slug": "tigers",
     "colors": ["#0a2240", "#ff4713"],
     "venue": "Comerica Park",
-    "timezone": "America/Detroit"
+    "timezone": "America/Detroit",
+    "did": "did:plc:eq62elsouws3nl3cidesmuvs"
   },
   {
     "id": 117,
@@ -93,7 +104,8 @@
     "slug": "astros",
     "colors": ["#002d62", "#eb6e1f"],
     "venue": "Minute Maid Park",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "did": "did:plc:2qwwkjqbdzus64ra3t5iwkjh"
   },
   {
     "id": 118,
@@ -101,7 +113,8 @@
     "slug": "royals",
     "colors": ["#004687", "#7ab2dd"],
     "venue": "Kauffman Stadium",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "did": "did:plc:ryoorvixrrotkng36id2wjnn"
   },
   {
     "id": 108,
@@ -109,7 +122,8 @@
     "slug": "angels",
     "colors": ["#ba0021", "#c4ced4"],
     "venue": "Angel Stadium",
-    "timezone": "America/Los_Angeles"
+    "timezone": "America/Los_Angeles",
+    "did": "did:plc:iufiot6xwydbh6hmxjkdbp27"
   },
   {
     "id": 119,
@@ -117,7 +131,8 @@
     "slug": "dodgers",
     "colors": ["#005a9c", "#ffffff"],
     "venue": "Dodger Stadium",
-    "timezone": "America/Los_Angeles"
+    "timezone": "America/Los_Angeles",
+    "did": "did:plc:ci2qmrh4xnrqhvakzbe44vxl"
   },
   {
     "id": 146,
@@ -125,7 +140,8 @@
     "slug": "marlins",
     "colors": ["#00a3e0", "#000000"],
     "venue": "loanDepot park",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:yjgv7cocfgkbkvijefvdvbso"
   },
   {
     "id": 158,
@@ -133,7 +149,8 @@
     "slug": "brewers",
     "colors": ["#13294b", "#ffc72c"],
     "venue": "American Family Field",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "did": "did:plc:wk55fjtgqjyt67hwzzojfitl"
   },
   {
     "id": 142,
@@ -141,7 +158,8 @@
     "slug": "twins",
     "colors": ["#031f40", "#e20e32"],
     "venue": "Target Field",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "did": "did:plc:oh4pcm4hky2wl3nnspurxt7p"
   },
   {
     "id": 121,
@@ -149,7 +167,8 @@
     "slug": "mets",
     "colors": ["#002d72", "#ff5910"],
     "venue": "Citi Field",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:tksi4m7gvuiakvzqji4pz2nh"
   },
   {
     "id": 147,
@@ -157,7 +176,8 @@
     "slug": "yankees",
     "colors": ["#132448", "#c4ced4"],
     "venue": "Yankee Stadium",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:qxqv7dtll5qb22nziwysjz3o"
   },
   {
     "id": 143,
@@ -165,7 +185,8 @@
     "slug": "phillies",
     "colors": ["#e81828", "#003278"],
     "venue": "Citizens Bank Park",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:r3wlralia2lkyx7l24fnvcas"
   },
   {
     "id": 134,
@@ -173,7 +194,8 @@
     "slug": "pirates",
     "colors": ["#000000", "#fdb827"],
     "venue": "PNC Park",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:5x6c5rjj7ih4exceanj74txv"
   },
   {
     "id": 135,
@@ -181,7 +203,8 @@
     "slug": "padres",
     "colors": ["#2f241d", "#ffc425"],
     "venue": "Petco Park",
-    "timezone": "America/Los_Angeles"
+    "timezone": "America/Los_Angeles",
+    "did": "did:plc:hij7g6hijej7zdntothd3zaw"
   },
   {
     "id": 137,
@@ -189,7 +212,8 @@
     "slug": "giants",
     "colors": ["#000000", "#fd5a1e"],
     "venue": "Oracle Park",
-    "timezone": "America/Los_Angeles"
+    "timezone": "America/Los_Angeles",
+    "did": "did:plc:c5gqlf6bcrljxo4wucpyfjqf"
   },
   {
     "id": 136,
@@ -197,7 +221,8 @@
     "slug": "mariners",
     "colors": ["#005c5c", "#0c2c56"],
     "venue": "T-Mobile Park",
-    "timezone": "America/Los_Angeles"
+    "timezone": "America/Los_Angeles",
+    "did": "did:plc:bu4qyr3svqjm5g4neitouk46"
   },
   {
     "id": 138,
@@ -205,7 +230,8 @@
     "slug": "cardinals",
     "colors": ["#be0a14", "#001541"],
     "venue": "Busch Stadium",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "did": "did:plc:zfedxvj7cvyxyvvxsbtehsfx"
   },
   {
     "id": 139,
@@ -213,7 +239,8 @@
     "slug": "rays",
     "colors": ["#092c5c", "#8fbce6"],
     "venue": "Tropicana Field",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:sbymro3ra22aiswuthzam2qy"
   },
   {
     "id": 140,
@@ -221,7 +248,8 @@
     "slug": "rangers",
     "colors": ["#003278", "#c0111f"],
     "venue": "Globe Life Field",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "did": "did:plc:stx4n5ypncvf4ybjypgokboh"
   },
   {
     "id": 141,
@@ -229,7 +257,8 @@
     "slug": "bluejays",
     "colors": ["#134a8e", "#6cace5"],
     "venue": "Rogers Centre",
-    "timezone": "America/Toronto"
+    "timezone": "America/Toronto",
+    "did": "did:plc:k2ifxkffqf6qqzff3yqunyrk"
   },
   {
     "id": 120,
@@ -237,6 +266,7 @@
     "slug": "nationals",
     "colors": ["#ab0003", "#11225b"],
     "venue": "Nationals Park",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "did": "did:plc:rjtqhmviejw7ndloccs4v5yj"
   }
 ]

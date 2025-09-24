@@ -100,8 +100,19 @@ export function getLocalDateAndOptionalTime(game, timeZone, options = {}) {
 
 // Bluesky helpers
 export const getBlueskyHandle = (team) => `${team.slug}.homegame.today`;
-export const getBlueskyProfileUrl = (team) => `https://bsky.app/profile/${getBlueskyHandle(team)}`;
-export const getBlueskyRssUrl = (team) => `${getBlueskyProfileUrl(team)}/rss`;
+export const getBlueskyDid = (team) => (team && typeof team.did === "string" ? team.did : undefined);
+export const getBlueskyProfileUrl = (team) => {
+  const did = getBlueskyDid(team);
+  return did ? `https://bsky.app/profile/${did}` : "";
+};
+export const getBlueskyRssUrl = (team) => {
+  const profile = getBlueskyProfileUrl(team);
+  return profile ? `${profile}/rss` : "";
+};
+
+// Mastodon (via Bridgy Fed) helpers – only when DID exists
+export const getMastodonAcct = (team) => (getBlueskyDid(team) ? `${team.slug}.homegame.today@bsky.brid.gy` : "");
+export const getMastodonActorUrl = (team) => (getBlueskyDid(team) ? `https://bsky.brid.gy/ap/@${team.slug}.homegame.today` : "");
 
 // Per-run schedule window cache to avoid duplicate HTTP fetches
 const _scheduleWindowCache = new Map();
@@ -206,7 +217,12 @@ export async function buildTeamPageData(team, options = {}) {
     rss: getBlueskyRssUrl(team),
   };
 
-  return { meta, ogImage, bluesky, facts, jsonLd };
+  const mastodon = {
+    acct: getMastodonAcct(team),
+    actor: getMastodonActorUrl(team),
+  };
+
+  return { meta, ogImage, bluesky, mastodon, facts, jsonLd };
 }
 
 // Build detail content fragments for the team page under the Yes/No

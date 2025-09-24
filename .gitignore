@@ -33,4 +33,7 @@ coverage/
 # Local tool env files
 .dev.vars
 
+# Cloudflare Workers (local state)
+.wrangler/
+
 og

@@ -13,6 +13,7 @@ Find out if your MLB team has a home game today.
 - Static site (SSG) with per‑team pages
 - Daily OG image generation (Resvg rendering)
 - Optional daily Bluesky posting per team
+- Cloudflare Worker for WebFinger, host-meta, and AT Proto DID resolution
 - Shared MLB utility for fetching/formatting schedule data
 - Small SEO utility for JSON‑LD
 
@@ -86,6 +87,31 @@ BLUESKY_PASSWORD_CUBS=your-app-password pnpm post:bluesky
 - Posts use `formatTeamStatus` and attach the daily OG if available.
 
 ## Static API (optional)
+## ActivityPub / AT Proto Well-Known
+
+This repo includes a Cloudflare Worker that enables:
+
+- `GET https://homegame.today/.well-known/host-meta` (XML) with an lrdd template pointing to WebFinger
+- `GET https://homegame.today/.well-known/webfinger?resource=acct:<team>@homegame.today` (JRD JSON)
+- `GET https://<team>.homegame.today/.well-known/atproto-did` returning `did=<plc...>`
+
+WebFinger responses map `acct:<team>@homegame.today` to the corresponding Bluesky actor via Bridgy Fed and the public Bluesky profile page.
+
+Local dev:
+
+```bash
+pnpm cf:dev
+# then try:
+curl -s 'http://127.0.0.1:8787/.well-known/webfinger?resource=acct:cubs@homegame.today' | jq .
+```
+
+Deploy requirements:
+
+- Cloudflare zone for `homegame.today`
+- Secrets in repo: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+- Wildcard route for `*.homegame.today/.well-known/atproto-did` and apex `/.well-known/*` are set in `wrangler.toml`
+- DIDs live in `src/data/teams.json` under the `did` field
+
 
 - `GET /api/team/[slug].json` returns the same data used to render pages.
 

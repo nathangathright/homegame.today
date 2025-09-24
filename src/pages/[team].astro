@@ -26,6 +26,8 @@ let ogImage: string = "";
 let blueskyUrl: string = "";
 let blueskyRssUrl: string = "";
 let jsonLd: any = null;
+let mastodonActorUrl: string = "";
+let mastodonAcct: string = "";
 
 if (team) {
   try {
@@ -36,6 +38,8 @@ if (team) {
     ogImage = built.ogImage;
     blueskyUrl = built.bluesky.profile;
     blueskyRssUrl = built.bluesky.rss;
+    mastodonActorUrl = built.mastodon?.actor ?? "";
+    mastodonAcct = built.mastodon?.acct ?? "";
     jsonLd = built.jsonLd;
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
@@ -118,13 +122,18 @@ const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
               })()}
             </div>
             <nav class="flex justify-center gap-4 mt-4">
-            <a aria-label="Open Github repo" rel="noopener noreferrer" target="_blank" href="https://github.com/nathangathright/homegame.today" class="block"><Icon name="ph:github-logo-duotone" class="w-8 h-8" /></a>
             {blueskyUrl && (
               <>
                 <a aria-label="Open team Bluesky profile" rel="noopener noreferrer" target="_blank" href={blueskyUrl} class="block"><Icon name="ph:butterfly-duotone" class="w-8 h-8" /></a>
+                {mastodonActorUrl && mastodonAcct && (
+                  <a aria-label="Open team Mastodon profile" href={mastodonActorUrl} class="block" data-masto-acct={mastodonAcct}>
+                    <Icon name="ph:mastodon-logo-duotone" class="w-8 h-8" />
+                  </a>
+                )}
                 <a aria-label="Open team Bluesky RSS" rel="noopener noreferrer" target="_blank" href={blueskyRssUrl} class="block"><Icon name="ph:rss-duotone" class="w-8 h-8" /></a>
               </>
             )}
+            <a aria-label="Open Github repo" rel="noopener noreferrer" target="_blank" href="https://github.com/nathangathright/homegame.today" class="block"><Icon name="ph:github-logo-duotone" class="w-8 h-8" /></a>
             </nav>
           </footer>
         </div>
@@ -132,3 +141,25 @@ const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
     )
   }
 </Layout>
+
+<script is:inline>
+  (function () {
+    function handleClick(ev) {
+      ev.preventDefault();
+      const el = ev.currentTarget;
+      const acct = el?.getAttribute?.('data-masto-acct');
+      if (!acct) return;
+      const home = window.prompt('Enter your Mastodon server (e.g. mastodon.social)', '');
+      if (!home) return;
+      const h = String(home).trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+      if (!h) return;
+      const url = `https://${h}/authorize_interaction?uri=${acct}`;
+      window.location.href = url;
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('a[data-masto-acct]')?.forEach((a) => {
+        a.addEventListener('click', handleClick);
+      });
+    });
+  })();
+</script>
