@@ -91,20 +91,24 @@ BLUESKY_PASSWORD_CUBS=your-app-password pnpm post:bluesky
 
 ## ActivityPub / AT Proto Well-Known
 
-This repo includes a Cloudflare Worker that enables:
+This repo includes a Cloudflare Worker that:
 
-- `GET https://homegame.today/.well-known/host-meta` (XML) with an lrdd template pointing to WebFinger
-- `GET https://homegame.today/.well-known/webfinger?resource=acct:<team>@homegame.today` (JRD JSON)
-- `GET https://<team>.homegame.today/.well-known/atproto-did` returning `did=<plc...>`
-
-WebFinger responses map `acct:<team>@homegame.today` to the corresponding Bluesky actor via Bridgy Fed and the public Bluesky profile page.
+- Redirects WebFinger to Bridgy Fed for bridged accounts
+  - Request: `https://homegame.today/.well-known/webfinger?resource=acct:<team>@homegame.today`
+  - Redirects to: `https://bsky.brid.gy/.well-known/webfinger?resource=acct:<team>.homegame.today@bsky.brid.gy`
+- Redirects host-meta to Bridgy Fed (when `resource` is provided)
+  - Request: `https://homegame.today/.well-known/host-meta?resource=acct:<team>@homegame.today`
+  - Redirects to: `https://bsky.brid.gy/.well-known/host-meta?resource=acct:<team>.homegame.today@bsky.brid.gy`
+- Serves AT Proto DID on team subdomains
+  - `GET https://<team>.homegame.today/.well-known/atproto-did` → `did=<plc...>`
 
 Local dev:
 
 ```bash
 pnpm cf:dev
-# then try:
-curl -s 'http://127.0.0.1:8787/.well-known/webfinger?resource=acct:cubs@homegame.today' | jq .
+# follow redirects when testing locally
+curl -sL 'http://127.0.0.1:8787/.well-known/webfinger?resource=acct:cubs@homegame.today' | jq .
+curl -sIL -o /dev/null -w '%{http_code} %{url_effective}\n' 'http://127.0.0.1:8787/.well-known/host-meta?resource=acct:cubs@homegame.today'
 ```
 
 Deploy requirements:
