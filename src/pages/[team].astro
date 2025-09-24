@@ -81,6 +81,7 @@ const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
   bgColor={team?.colors?.[0]}
   fgColor={(team?.colors?.[0] ?? "#ffffff").toLowerCase() === "#000000" ? "#ffffff" : "#ffffff"}
   ogImage={ogImage}
+  rss={blueskyRssUrl}
 >
   {
     !team ? (
