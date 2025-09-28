@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { Resvg } from "@resvg/resvg-js";
 import { dateKeyInZone, fetchScheduleWindowCached, computeOgText, computeWindowStartEnd } from "../src/lib/mlb.mjs";
+import { pickPreferredThenBW } from "../src/lib/color.mjs";
 
 const ROOT = path.resolve(process.cwd());
 const TEAMS_PATH = path.join(ROOT, "src", "data", "teams.json");
@@ -66,12 +67,12 @@ function wrapTextToLines(text, fontSize, maxWidthPx, maxLines) {
   return { lines, overflow: false };
 }
 
-function createSvg({ lines, backgroundColor, fontSize }) {
+function createSvg({ lines, backgroundColor, fontSize, textColor }) {
   const width = 1200;
   const height = 630;
   const centerX = width / 2;
   const centerY = height / 2;
-  const fontFamily = "Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif";
+  const fontFamily = "system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif";
   const lineHeight = Math.round(fontSize * 1.2);
   const safeLines = lines.map(escapeXml);
 
@@ -87,7 +88,7 @@ function createSvg({ lines, backgroundColor, fontSize }) {
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
     <style>
-      .title { fill: #ffffff; font-family: ${fontFamily}; font-weight: 800; font-size: ${fontSize}px; }
+      .title { fill: ${textColor}; font-family: ${fontFamily}; font-weight: 800; font-size: ${fontSize}px; }
     </style>
   </defs>
   <rect width="100%" height="100%" fill="${backgroundColor}" />
@@ -97,7 +98,7 @@ function createSvg({ lines, backgroundColor, fontSize }) {
 </svg>`;
 }
 
-async function renderOgPng({ text, backgroundColor }) {
+async function renderOgPng({ text, backgroundColor, textColor }) {
   const maxWidthPx = 1000;
   let fontSize = 96;
   let wrapped;
@@ -109,7 +110,7 @@ async function renderOgPng({ text, backgroundColor }) {
     fontSize = Math.max(64, fontSize - 6);
   }
 
-  const svg = createSvg({ lines: wrapped.lines, backgroundColor, fontSize });
+  const svg = createSvg({ lines: wrapped.lines, backgroundColor, fontSize, textColor });
   const resvg = new Resvg(svg, {
     fitTo: { mode: "width", value: 1200 },
     font: { loadSystemFonts: true },
@@ -129,13 +130,16 @@ async function main() {
     const slug = team?.slug;
     if (!slug) continue;
     const primaryColor = (team.colors?.[0] ?? "#000000").toString();
+    const preferredText = (team.colors?.[1] ?? "#ffffff").toString();
+    const picked = pickPreferredThenBW({ background: primaryColor, preferred: preferredText, level: "AA", textType: "large" });
+    const secondaryColor = picked.color ?? preferredText;
 
     try {
       const apiData = await fetchScheduleWindowCached(team.id, startIso, endIso);
       const text = computeOgText(team, apiData);
       const todayKey = dateKeyInZone(new Date(), team?.timezone);
       const outPath = path.join(OUT_DIR, `${slug}-${todayKey}.png`);
-      const png = await renderOgPng({ text, backgroundColor: primaryColor });
+      const png = await renderOgPng({ text, backgroundColor: primaryColor, textColor: secondaryColor });
       await fs.writeFile(outPath, png);
       console.log(`Daily OG generated: ${outPath}`);
     } catch (err) {

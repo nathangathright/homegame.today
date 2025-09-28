@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { pickPreferredThenBW } from "../lib/color.mjs";
 import teams from "../data/teams.json";
 import "../styles/global.css";
 import { Icon } from 'astro-icon/components';
@@ -71,15 +72,20 @@ const teamTimeZone = (team as any)?.timezone as string | undefined;
 const pageTitle = pageMeta.title;
 const pageDescription = pageMeta.description;
 const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
----
 
+// Compute contrast-aware colors for the page chrome
+const bg = (team?.colors?.[0] ?? "#000000").toString();
+const preferred = (team?.colors?.[1] ?? "#ffffff").toString();
+const picked = (pickPreferredThenBW as any)({ background: bg, preferred, level: "AA", textType: "large" });
+const fg = (picked?.color ?? preferred) as string;
+---
 <Layout
   title={pageTitle}
   description={pageDescription}
   canonical={canonical}
-  themeColor={team?.colors?.[0]}
-  bgColor={team?.colors?.[0]}
-  fgColor={(team?.colors?.[0] ?? "#ffffff").toLowerCase() === "#000000" ? "#ffffff" : "#ffffff"}
+  themeColor={bg}
+  bgColor={bg}
+  fgColor={fg}
   ogImage={ogImage}
   rss={blueskyRssUrl}
 >
