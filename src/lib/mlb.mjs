@@ -20,16 +20,87 @@ export async function fetchLeagueScheduleToday() {
 }
 
 export async function fetchScheduleWindow(teamId, startDateIso, endDateIso) {
-  const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
-  apiUrl.searchParams.set("sportId", "1");
-  apiUrl.searchParams.set("teamId", String(teamId));
-  if (startDateIso) apiUrl.searchParams.set("startDate", startDateIso);
-  if (endDateIso) apiUrl.searchParams.set("endDate", endDateIso);
-  const res = await fetch(apiUrl.toString(), { headers: { accept: "application/json" } });
-  if (!res.ok) {
-    throw new Error(`MLB API error ${res.status}`);
+  // Regular season schedule
+  const baseUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
+  baseUrl.searchParams.set("sportId", "1");
+  baseUrl.searchParams.set("teamId", String(teamId));
+  if (startDateIso) baseUrl.searchParams.set("startDate", startDateIso);
+  if (endDateIso) baseUrl.searchParams.set("endDate", endDateIso);
+
+  // Postseason schedule (includes Wild Card, LDS, LCS, WS)
+  const psUrl = new URL("https://statsapi.mlb.com/api/v1/schedule/postseason");
+  psUrl.searchParams.set("teamId", String(teamId));
+  if (startDateIso) psUrl.searchParams.set("startDate", startDateIso);
+  if (endDateIso) psUrl.searchParams.set("endDate", endDateIso);
+
+  const [regRes, psRes] = await Promise.all([
+    fetch(baseUrl.toString(), { headers: { accept: "application/json" } }),
+    fetch(psUrl.toString(), { headers: { accept: "application/json" } }),
+  ]);
+
+  if (!regRes.ok) {
+    throw new Error(`MLB API error ${regRes.status}`);
   }
-  return res.json();
+
+  // Postseason may 404 or be empty out of season; handle softly
+  let regJson;
+  let psJson;
+  try {
+    regJson = await regRes.json();
+  } catch {
+    regJson = { dates: [] };
+  }
+  if (psRes && psRes.ok) {
+    try {
+      psJson = await psRes.json();
+    } catch {
+      psJson = { dates: [] };
+    }
+  } else {
+    psJson = { dates: [] };
+  }
+
+  // Merge dates arrays and de-dupe games by gamePk
+  const regDates = Array.isArray(regJson?.dates) ? regJson.dates : [];
+  const psDates = Array.isArray(psJson?.dates) ? psJson.dates : [];
+  const allDates = [...regDates, ...psDates];
+
+  // Flatten, merge, and rebuild minimal schedule shape compatible with consumers
+  const allGames = allDates.flatMap((d) => (Array.isArray(d?.games) ? d.games : []));
+  const byPk = new Map();
+  for (const g of allGames) {
+    const pk = g?.gamePk ?? g?.gamePk === 0 ? g.gamePk : undefined;
+    if (pk == null) continue;
+    // Prefer entries that have a concrete gameDate
+    const existing = byPk.get(pk);
+    if (!existing) {
+      byPk.set(pk, g);
+    } else if (!existing.gameDate && g.gameDate) {
+      byPk.set(pk, g);
+    }
+  }
+
+  const mergedGames = Array.from(byPk.values()).sort((a, b) => {
+    const ta = a?.gameDate ? new Date(a.gameDate).getTime() : Number.POSITIVE_INFINITY;
+    const tb = b?.gameDate ? new Date(b.gameDate).getTime() : Number.POSITIVE_INFINITY;
+    return ta - tb;
+  });
+
+  // Re-group by date key (YYYY-MM-DD) as schedule endpoint returns
+  const grouped = new Map();
+  for (const g of mergedGames) {
+    const iso = g?.gameDate ? String(g.gameDate) : "";
+    const day = iso ? iso.slice(0, 10) : "";
+    if (!grouped.has(day)) grouped.set(day, []);
+    grouped.get(day).push(g);
+  }
+
+  const merged = {
+    totalItems: mergedGames.length,
+    dates: Array.from(grouped.entries()).map(([date, games]) => ({ date, totalGames: games.length, games })),
+  };
+
+  return merged;
 }
 
 export function deriveTeamScheduleFacts(team, apiData) {
@@ -38,16 +109,31 @@ export function deriveTeamScheduleFacts(team, apiData) {
   const teamTimeZone = team?.timezone;
   const todayKey = dateKeyInZone(new Date(), teamTimeZone);
 
+  // Treat a game as a home game for the team if either:
+  // - The MLB API home team id matches the team's id (regular case)
+  // - The venue name matches the team's venue (postseason placeholders sometimes use seed ids)
+  const isHomeForTeam = (g) => {
+    try {
+      const byId = g?.teams?.home?.team?.id === team?.id;
+      const venueName = (g?.venue?.name || "").toString().trim().toLowerCase();
+      const teamVenue = (team?.venue || "").toString().trim().toLowerCase();
+      const byVenue = !!venueName && !!teamVenue && venueName === teamVenue;
+      return byId || byVenue;
+    } catch {
+      return false;
+    }
+  };
+
   const gamesToday = games.filter((g) => {
     const iso = g?.gameDate ? dateKeyInZone(new Date(g.gameDate), teamTimeZone) : undefined;
     return iso === todayKey;
   });
-  const homeGamesToday = gamesToday.filter((g) => g?.teams?.home?.team?.id === team?.id);
+  const homeGamesToday = gamesToday.filter((g) => isHomeForTeam(g));
   const awayGamesToday = gamesToday.filter((g) => g?.teams?.away?.team?.id === team?.id);
 
   const nowTs = Date.now();
   const upcomingHomeGames = games
-    .filter((g) => g?.teams?.home?.team?.id === team?.id && g?.gameDate)
+    .filter((g) => isHomeForTeam(g) && g?.gameDate)
     .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
   const nextHomeGame = upcomingHomeGames.find((g) => new Date(g.gameDate).getTime() >= nowTs);
 
