@@ -10,13 +10,80 @@ export function dateKeyInZone(d, timeZone) {
 }
 
 export async function fetchLeagueScheduleToday() {
-  const apiUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
-  apiUrl.searchParams.set("sportId", "1");
-  const res = await fetch(apiUrl.toString(), { headers: { accept: "application/json" } });
-  if (!res.ok) {
-    throw new Error(`MLB API error ${res.status}`);
+  // Use league-wide date in America/New_York to align with MLB schedule day
+  const today = dateKeyInZone(new Date(), "America/New_York");
+
+  // Regular season endpoint
+  const regUrl = new URL("https://statsapi.mlb.com/api/v1/schedule");
+  regUrl.searchParams.set("sportId", "1");
+  regUrl.searchParams.set("startDate", today);
+  regUrl.searchParams.set("endDate", today);
+
+  // Postseason endpoint
+  const psUrl = new URL("https://statsapi.mlb.com/api/v1/schedule/postseason");
+  psUrl.searchParams.set("startDate", today);
+  psUrl.searchParams.set("endDate", today);
+
+  const [regRes, psRes] = await Promise.all([
+    fetch(regUrl.toString(), { headers: { accept: "application/json" } }),
+    fetch(psUrl.toString(), { headers: { accept: "application/json" } }),
+  ]);
+
+  // Be tolerant of errors here; this function is used as a soft guard
+  let regJson = { dates: [] };
+  let psJson = { dates: [] };
+  try {
+    if (regRes && regRes.ok) {
+      regJson = await regRes.json();
+    }
+  } catch {
+    regJson = { dates: [] };
   }
-  return res.json();
+  try {
+    if (psRes && psRes.ok) {
+      psJson = await psRes.json();
+    }
+  } catch {
+    psJson = { dates: [] };
+  }
+
+  // Merge dates arrays and de-dupe games by gamePk
+  const regDates = Array.isArray(regJson?.dates) ? regJson.dates : [];
+  const psDates = Array.isArray(psJson?.dates) ? psJson.dates : [];
+  const allDates = [...regDates, ...psDates];
+
+  const allGames = allDates.flatMap((d) => (Array.isArray(d?.games) ? d.games : []));
+  const byPk = new Map();
+  for (const g of allGames) {
+    const pk = g?.gamePk ?? g?.gamePk === 0 ? g.gamePk : undefined;
+    if (pk == null) continue;
+    const existing = byPk.get(pk);
+    if (!existing) {
+      byPk.set(pk, g);
+    } else if (!existing.gameDate && g.gameDate) {
+      byPk.set(pk, g);
+    }
+  }
+
+  const mergedGames = Array.from(byPk.values()).sort((a, b) => {
+    const ta = a?.gameDate ? new Date(a.gameDate).getTime() : Number.POSITIVE_INFINITY;
+    const tb = b?.gameDate ? new Date(b.gameDate).getTime() : Number.POSITIVE_INFINITY;
+    return ta - tb;
+  });
+
+  // Re-group by date key (YYYY-MM-DD)
+  const grouped = new Map();
+  for (const g of mergedGames) {
+    const iso = g?.gameDate ? String(g.gameDate) : "";
+    const day = iso ? iso.slice(0, 10) : today;
+    if (!grouped.has(day)) grouped.set(day, []);
+    grouped.get(day).push(g);
+  }
+
+  return {
+    totalItems: mergedGames.length,
+    dates: Array.from(grouped.entries()).map(([date, games]) => ({ date, totalGames: games.length, games })),
+  };
 }
 
 export async function fetchScheduleWindow(teamId, startDateIso, endDateIso) {
