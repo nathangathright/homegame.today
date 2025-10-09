@@ -5,5 +5,5 @@ workers_dev = true
 
 routes = [
   { pattern = "homegame.today/.well-known/*", zone_name = "homegame.today" },
-  { pattern = "*.homegame.today/.well-known/atproto-did", zone_name = "homegame.today" },
+  { pattern = "*.homegame.today/*", zone_name = "homegame.today" },
 ]
