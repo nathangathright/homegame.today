@@ -1,7 +1,7 @@
 import { AtpAgent } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fetchLeagueScheduleToday, fetchScheduleWindowCached, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd, getBlueskyHandle, getBlueskyDid } from "../src/lib/mlb.mjs";
+import { fetchLeagueScheduleToday, fetchScheduleWindowCached, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd, getBlueskyHandle, getBlueskyDid, deriveTeamScheduleFacts } from "../src/lib/mlb.mjs";
 if (process.env.CI !== "true" && process.env.GITHUB_ACTIONS !== "true") {
   await import("dotenv/config");
 }
@@ -10,6 +10,43 @@ async function readTeams() {
   const teamsJsonPath = path.resolve(process.cwd(), "src/data/teams.json");
   const fileContents = await fs.readFile(teamsJsonPath, "utf8");
   return JSON.parse(fileContents);
+}
+
+/**
+ * Extract the next home game date from schedule data.
+ * Returns the gameDate ISO string if found, or null.
+ */
+function extractNextHomeGameDate(team, apiData) {
+  const facts = deriveTeamScheduleFacts(team, apiData);
+  return facts?.nextHomeGame?.gameDate ?? null;
+}
+
+/**
+ * Parse the next game date from a previous post's text.
+ * Extracts dates in formats like "Oct 8, 2025" or "October 8, 2025".
+ * Returns the date in YYYY-MM-DD format if found, or null.
+ */
+function parseNextGameDateFromText(text, teamTimeZone) {
+  if (!text) return null;
+  
+  // Match patterns like "scheduled for Oct 8, 2025" or "scheduled for October 8, 2025"
+  const datePattern = /scheduled for ([A-Za-z]+ \d{1,2}, \d{4})/;
+  const match = text.match(datePattern);
+  
+  if (!match) return null;
+  
+  try {
+    // Parse the date string (e.g., "Oct 8, 2025")
+    const dateStr = match[1];
+    const parsed = new Date(dateStr);
+    
+    if (isNaN(parsed.getTime())) return null;
+    
+    // Return as YYYY-MM-DD in the team's timezone
+    return dateKeyInZone(parsed, teamTimeZone);
+  } catch {
+    return null;
+  }
 }
 
 async function sleep(ms) {
@@ -114,7 +151,7 @@ async function main() {
         console.warn(`OG thumb unavailable for ${team.name} (${slug}): ${message}`);
       }
 
-      // Skip if already posted today (team local date), or if duplicate of latest
+      // Skip if already posted today (team local date), or if next game date is the same
       const latest = await fetchLatestPost(agent, agent.session?.did ?? identifier);
       const teamTimeZone = team?.timezone;
       if (latest?.value?.createdAt) {
@@ -125,6 +162,17 @@ async function main() {
           continue;
         }
       }
+      
+      // Check if the next home game date is the same as the previous post
+      const currentNextGameDate = extractNextHomeGameDate(team, data);
+      const previousNextGameDate = parseNextGameDateFromText(latest?.value?.text, teamTimeZone);
+      
+      if (currentNextGameDate && previousNextGameDate && currentNextGameDate.startsWith(previousNextGameDate)) {
+        console.log(`Next game date unchanged for ${team.name} (${slug}): ${previousNextGameDate} — skipping.`);
+        continue;
+      }
+      
+      // Fallback: also skip if text is exactly the same
       if (latest?.value?.text && latest.value.text === postText) {
         console.log(`Duplicate text for ${team.name} (${slug}) — skipping.`);
         continue;
