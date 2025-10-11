@@ -124,7 +124,32 @@ async function main() {
       const { startIso, endIso } = computeWindowStartEnd(new Date());
       const data = await fetchScheduleWindowCached(team.id, startIso, endIso);
       const text = computeStatusForTeam(team, data);
+      const pageUrl = `https://homegame.today/${slug}`;
       const postText = text;
+      const embed = {
+        $type: "app.bsky.embed.external",
+        external: {
+          uri: pageUrl,
+          title: team.name,
+          description: text,
+        },
+      };
+
+      // Try to attach the day's OG image as the card thumbnail
+      try {
+        const todayKey = dateKeyInZone(new Date(), team?.timezone);
+        const ogPath = path.resolve(process.cwd(), "dist", "og", `${slug}-${todayKey}.png`);
+        const bytes = await fs.readFile(ogPath);
+        const upload = await agent.com.atproto.repo.uploadBlob(bytes, { encoding: "image/png" });
+        const thumb = upload?.data?.blob ?? upload?.blob;
+        if (thumb) {
+          embed.external.thumb = thumb;
+        }
+      } catch (e) {
+        // If thumb upload fails or file missing, proceed without a thumbnail
+        const message = e instanceof Error ? e.message : String(e);
+        console.warn(`OG thumb unavailable for ${team.name} (${slug}): ${message}`);
+      }
 
       // Skip if already posted today (team local date), or if next game date is the same
       const latest = await fetchLatestPost(agent, agent.session?.did ?? identifier);
@@ -153,6 +178,40 @@ async function main() {
         continue;
       }
 
+      // Build rich-text facets to hyperlink the team name (and the URL if present)
+      const encoder = new TextEncoder();
+      function utf8IndexFromUtf16(str, utf16Index) {
+        return encoder.encode(str.slice(0, utf16Index)).length;
+      }
+      const facets = [];
+      // Link the team name at the start of the post
+      const nameUtf8Start = 0;
+      const nameUtf8End = utf8IndexFromUtf16(postText, team.name.length);
+      facets.push({
+        index: { byteStart: nameUtf8Start, byteEnd: nameUtf8End },
+        features: [
+          {
+            $type: "app.bsky.richtext.facet#link",
+            uri: pageUrl,
+          },
+        ],
+      });
+      // Also link the raw URL line if present in the text
+      const urlStart16 = postText.indexOf(pageUrl);
+      if (urlStart16 >= 0) {
+        const urlUtf8Start = utf8IndexFromUtf16(postText, urlStart16);
+        const urlUtf8End = urlUtf8Start + encoder.encode(pageUrl).length;
+        facets.push({
+          index: { byteStart: urlUtf8Start, byteEnd: urlUtf8End },
+          features: [
+            {
+              $type: "app.bsky.richtext.facet#link",
+              uri: pageUrl,
+            },
+          ],
+        });
+      }
+
       const nowIso = new Date().toISOString();
       await agent.com.atproto.repo.createRecord({
         repo: agent.session?.did ?? identifier,
@@ -160,6 +219,8 @@ async function main() {
         record: {
           $type: "app.bsky.feed.post",
           text: postText,
+          embed,
+          facets,
           createdAt: nowIso,
         },
       });
