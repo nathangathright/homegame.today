@@ -126,31 +126,6 @@ async function main() {
       const text = computeStatusForTeam(team, data);
       const postText = text;
 
-      // Try to upload the day's OG image
-      let imageEmbed = null;
-      try {
-        const todayKey = dateKeyInZone(new Date(), team?.timezone);
-        const ogPath = path.resolve(process.cwd(), "dist", "og", `${slug}-${todayKey}.png`);
-        const bytes = await fs.readFile(ogPath);
-        const upload = await agent.com.atproto.repo.uploadBlob(bytes, { encoding: "image/png" });
-        const blob = upload?.data?.blob ?? upload?.blob;
-        if (blob) {
-          imageEmbed = {
-            $type: "app.bsky.embed.images",
-            images: [
-              {
-                image: blob,
-                alt: `${team.name} schedule for ${todayKey}`,
-              },
-            ],
-          };
-        }
-      } catch (e) {
-        // If image upload fails or file missing, proceed without an image
-        const message = e instanceof Error ? e.message : String(e);
-        console.warn(`OG image unavailable for ${team.name} (${slug}): ${message}`);
-      }
-
       // Skip if already posted today (team local date), or if next game date is the same
       const latest = await fetchLatestPost(agent, agent.session?.did ?? identifier);
       const teamTimeZone = team?.timezone;
@@ -179,21 +154,14 @@ async function main() {
       }
 
       const nowIso = new Date().toISOString();
-      const record = {
-        $type: "app.bsky.feed.post",
-        text: postText,
-        createdAt: nowIso,
-      };
-      
-      // Add image embed if available
-      if (imageEmbed) {
-        record.embed = imageEmbed;
-      }
-      
       await agent.com.atproto.repo.createRecord({
         repo: agent.session?.did ?? identifier,
         collection: "app.bsky.feed.post",
-        record,
+        record: {
+          $type: "app.bsky.feed.post",
+          text: postText,
+          createdAt: nowIso,
+        },
       });
 
       console.log(`Posted for ${team.name}: ${postText}`);
