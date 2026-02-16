@@ -124,7 +124,7 @@ async function main() {
       const { startIso, endIso } = computeWindowStartEnd(new Date());
       const data = await fetchScheduleWindowCached(team.id, startIso, endIso);
       const text = computeStatusForTeam(team, data);
-      const pageUrl = `https://homegame.today/${slug}`;
+      const pageUrl = `https://${slug}.homegame.today`;
       const postText = text;
       const embed = {
         $type: "app.bsky.embed.external",

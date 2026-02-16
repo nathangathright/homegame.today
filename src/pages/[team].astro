@@ -32,7 +32,7 @@ let mastodonAcct: string = "";
 
 if (team) {
   try {
-    const built = await buildTeamPageData(team as any, { siteBase: Astro.site });
+    const built = await buildTeamPageData(team as any, { siteBase: new URL(`https://${slug}.homegame.today`) });
     data = { __built: true } as any; // indicator not used further
     facts = built.facts;
     pageMeta = built.meta;
@@ -71,7 +71,7 @@ const hasHomeToday = homeGamesToday.length > 0;
 const teamTimeZone = (team as any)?.timezone as string | undefined;
 const pageTitle = pageMeta.title;
 const pageDescription = pageMeta.description;
-const canonical = site ? new URL(`/${slug}`, site).toString() : `/${slug}`;
+const canonical = `https://${slug}.homegame.today`;
 
 // Compute contrast-aware colors for the page chrome
 const bg = (team?.colors?.[0] ?? "#000000").toString();
@@ -94,7 +94,7 @@ const fg = (picked?.color ?? preferred) as string;
       <>
         <h1>Team not found</h1>
         <p>
-          <a href="/">Home</a>
+          <a href="https://homegame.today">Home</a>
         </p>
       </>
     ) : error ? (
@@ -102,7 +102,7 @@ const fg = (picked?.color ?? preferred) as string;
         <h1>{team.name}</h1>
         <p>Unable to load schedule.</p>
         <p>
-          <a href="/">Home</a>
+          <a href="https://homegame.today">Home</a>
         </p>
       </>
     ) : (

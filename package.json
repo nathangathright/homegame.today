@@ -8,7 +8,7 @@
     "dev": "astro dev",
     "build": "astro build && node scripts/generate-og-daily.mjs --out=dist/og",
     "preview": "astro preview",
-    "cf:dev": "wrangler dev --local --port=8787 cf/worker.mjs",
+    "cf:dev": "wrangler dev",
     "cf:deploy": "wrangler deploy",
     "astro": "astro",
     "format": "prettier --write .",

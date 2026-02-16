@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-homegame.today is a static MLB baseball schedule site that answers "Is there a home game today?" for all 30 teams. Built with Astro SSG, it fetches from the MLB Stats API at build time and deploys to GitHub Pages. A Cloudflare Worker handles ActivityPub/AT Proto federation on subdomains.
+homegame.today is a static MLB baseball schedule site that answers "Is there a home game today?" for all 30 teams. Built with Astro SSG, it fetches from the MLB Stats API at build time and deploys to Cloudflare Workers (via Workers Static Assets). Each team lives on its own subdomain (e.g. `cubs.homegame.today`). A unified Cloudflare Worker serves the static site, handles subdomain routing, and manages ActivityPub/AT Proto federation.
 
 ## Commands
 
@@ -46,10 +46,12 @@ Central module containing all MLB schedule logic:
 
 ### Cloudflare Worker (`cf/worker.mjs`)
 
-Handles `*.homegame.today` subdomains and `homegame.today/.well-known/*`:
-- WebFinger/host-meta → redirects to Bridgy Fed for ActivityPub federation
-- `/.well-known/atproto-did` on subdomains → returns team's AT Proto DID
-- Subdomain root → redirects to main site team page
+Unified worker serving the entire site via Workers Static Assets (`env.ASSETS`):
+- **Subdomain routing**: `cubs.homegame.today/` → rewrites to `/cubs/` and serves from static assets
+- **Apex redirects**: `homegame.today/cubs` → 301 redirect to `cubs.homegame.today`
+- **Federation**: WebFinger/host-meta on apex → redirects to Bridgy Fed for ActivityPub
+- **AT Proto**: `/.well-known/atproto-did` on subdomains → returns team's AT Proto DID
+- **Static assets**: all other requests pass through to `env.ASSETS`
 
 ### Key Patterns
 
@@ -60,8 +62,8 @@ Handles `*.homegame.today` subdomains and `homegame.today/.well-known/*`:
 
 ### Deployment
 
-- **GitHub Pages**: Astro static build via `actions/deploy-pages`
-- **Cloudflare Worker**: deployed via `wrangler deploy` to the `homegame.today` zone
+- **Cloudflare Workers**: single `wrangler deploy` deploys the worker + static assets to the `homegame.today` zone
+- **GitHub Actions**: build + deploy in one job (`deploy.yml`); skips deploy on PRs
 - **Scheduled**: daily Bluesky posts at 09:00 UTC during baseball season (Mar–Oct)
 
 ## Style

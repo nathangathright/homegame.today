@@ -58,11 +58,11 @@ async function handleAtprotoDid(hostname) {
 }
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const url = new URL(request.url);
     const fwdHost = request.headers.get("x-forwarded-host");
     const hostHeader = request.headers.get("host");
-    const hostValue = (fwdHost && fwdHost.length > 0) ? fwdHost : hostHeader;
+    const hostValue = fwdHost && fwdHost.length > 0 ? fwdHost : hostHeader;
     const hostname = (hostValue ? hostValue.split(":")[0] : url.hostname) || url.hostname;
     const { pathname } = url;
 
@@ -71,39 +71,52 @@ export default {
       return handleAtprotoDid(hostname);
     }
 
-    // Redirect team subdomain root to canonical apex path, preserve query
-    // e.g., https://cubs.homegame.today/ -> https://homegame.today/cubs
-    if (hostname.endsWith(".homegame.today") && hostname !== "homegame.today") {
-      const isWellKnown = pathname.startsWith("/.well-known/");
-      if (!isWellKnown && (pathname === "/" || pathname === "")) {
-        const slug = getSlugFromHost(hostname);
+    const isSubdomain = hostname.endsWith(".homegame.today") && hostname !== "homegame.today";
+
+    // --- Subdomain requests (e.g. cubs.homegame.today) ---
+    if (isSubdomain) {
+      const slug = getSlugFromHost(hostname);
+
+      // Root → rewrite to /slug/ and serve from static assets
+      if (pathname === "/" || pathname === "") {
         if (slug) {
-          const redirectTo = new URL(`https://homegame.today/${slug}${url.search}`);
-          return Response.redirect(redirectTo.toString(), 301);
+          const rewritten = new URL(`/${slug}/`, url.origin);
+          return env.ASSETS.fetch(new Request(rewritten, request));
         }
       }
+
+      // Everything else on subdomains (CSS, JS, images, og, api) → pass through to assets
+      return env.ASSETS.fetch(request);
     }
 
-    // Host-meta and WebFinger only on apex
-    if (hostname === "homegame.today") {
-      if (pathname === "/.well-known/host-meta" || pathname === "/.well-known/host-meta.json") {
-        const slug = getSlugFromResource(url.searchParams.get("resource"));
-        if (!slug) return badRequest("Missing resource");
-        const team = findTeamBySlug(slug);
-        const did = team?.did;
-        if (did) return redirectToBridgy("host-meta", slug);
-        return notFound("Unknown account");
-      }
-      if (pathname === "/.well-known/webfinger") {
-        const slug = getSlugFromResource(url.searchParams.get("resource"));
-        if (!slug) return badRequest("Missing resource");
-        const team = findTeamBySlug(slug);
-        const did = team?.did;
-        if (did) return redirectToBridgy("webfinger", slug);
-        return notFound("Unknown account");
-      }
+    // --- Apex requests (homegame.today) ---
+
+    // Host-meta and WebFinger on apex
+    if (pathname === "/.well-known/host-meta" || pathname === "/.well-known/host-meta.json") {
+      const slug = getSlugFromResource(url.searchParams.get("resource"));
+      if (!slug) return badRequest("Missing resource");
+      const team = findTeamBySlug(slug);
+      const did = team?.did;
+      if (did) return redirectToBridgy("host-meta", slug);
+      return notFound("Unknown account");
+    }
+    if (pathname === "/.well-known/webfinger") {
+      const slug = getSlugFromResource(url.searchParams.get("resource"));
+      if (!slug) return badRequest("Missing resource");
+      const team = findTeamBySlug(slug);
+      const did = team?.did;
+      if (did) return redirectToBridgy("webfinger", slug);
+      return notFound("Unknown account");
     }
 
-    return notFound();
+    // Redirect /team-slug paths to subdomains
+    const pathSlug = pathname.replace(/^\/|\/$/g, "");
+    if (pathSlug && findTeamBySlug(pathSlug)) {
+      const redirectTo = `https://${pathSlug}.homegame.today/${url.search}`;
+      return Response.redirect(redirectTo, 301);
+    }
+
+    // Everything else on apex (homepage, static files, API) → pass through to assets
+    return env.ASSETS.fetch(request);
   },
 };
