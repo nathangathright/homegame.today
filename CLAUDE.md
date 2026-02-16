@@ -9,7 +9,7 @@ homegame.today is a static MLB baseball schedule site that answers "Is there a h
 ## Commands
 
 ```bash
-pnpm install          # Install dependencies (pnpm 10+, Node 20+)
+pnpm install          # Install dependencies (pnpm 10+, Node 22+)
 pnpm dev              # Local dev server (runs OG image generation via predev hook)
 pnpm build            # Production build (Astro + OG images to dist/)
 pnpm preview          # Preview production build

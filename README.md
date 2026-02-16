@@ -1,7 +1,6 @@
 # homegame.today
 
-[![Build](https://github.com/nathangathright/homegame.today/actions/workflows/build.yml/badge.svg)](https://github.com/nathangathright/homegame.today/actions/workflows/build.yml)
-[![Lint](https://github.com/nathangathright/homegame.today/actions/workflows/lint.yml/badge.svg)](https://github.com/nathangathright/homegame.today/actions/workflows/lint.yml)
+[![Deploy](https://github.com/nathangathright/homegame.today/actions/workflows/deploy.yml/badge.svg)](https://github.com/nathangathright/homegame.today/actions/workflows/deploy.yml)
 
 Find out if your MLB team has a home game today.
 
@@ -13,7 +12,7 @@ Find out if your MLB team has a home game today.
 - Static site (SSG) with per‑team pages
 - Daily OG image generation (Resvg rendering)
 - Optional daily Bluesky posting per team
-- Cloudflare Worker for WebFinger, host-meta, and AT Proto DID resolution
+- Cloudflare Worker serving the entire site with subdomain routing, federation, and AT Proto DID resolution
 - Shared MLB utility for fetching/formatting schedule data
 - Small SEO utility for JSON‑LD
 
@@ -41,7 +40,7 @@ Find out if your MLB team has a home game today.
 
 ## Local development
 
-Prereqs: Node 20+, pnpm 9+
+Prereqs: Node 22+, pnpm 10+
 
 - Install: `pnpm install`
 - Dev: `pnpm dev` (predev generates OG images in `public/og`)
@@ -59,7 +58,7 @@ Utilities:
 - Keep `[team].astro` thin; if you find logic there, extract a helper.
 - Surface new page data via `buildTeamPageData` for consistency.
 - Use explicit, readable helper names; add JSDoc where helpful; avoid deep nesting.
-- Run `pnpm lint` and ensure CI (Lint workflow) passes before opening a PR.
+- Run `pnpm lint` and ensure CI passes before opening a PR.
 
 ## Implementation notes
 
@@ -89,34 +88,28 @@ BLUESKY_PASSWORD_CUBS=your-app-password pnpm post:bluesky
 ## Static API (optional)
 - `GET /api/team/[slug].json` returns the same data used to render pages.
 
-## ActivityPub / AT Proto Well-Known
+## Cloudflare Worker
 
-This repo includes a Cloudflare Worker that:
+A unified Cloudflare Worker (`cf/worker.mjs`) serves the entire site via Workers Static Assets (`env.ASSETS`):
 
-- Redirects WebFinger to Bridgy Fed for bridged accounts
-  - Request: `https://homegame.today/.well-known/webfinger?resource=acct:<team>@homegame.today`
-  - Redirects to: `https://bsky.brid.gy/.well-known/webfinger?resource=acct:<team>.homegame.today@bsky.brid.gy`
-- Redirects host-meta to Bridgy Fed (when `resource` is provided)
-  - Request: `https://homegame.today/.well-known/host-meta?resource=acct:<team>@homegame.today`
-  - Redirects to: `https://bsky.brid.gy/.well-known/host-meta?resource=acct:<team>.homegame.today@bsky.brid.gy`
-- Serves AT Proto DID on team subdomains
-  - `GET https://<team>.homegame.today/.well-known/atproto-did` → `did=<plc...>`
+- **Subdomain routing**: `cubs.homegame.today/` → rewrites to `/cubs/` and serves from static assets
+- **Apex redirects**: `homegame.today/cubs` → 301 redirect to `cubs.homegame.today`
+- **Federation**: WebFinger/host-meta on apex → redirects to Bridgy Fed for ActivityPub
+- **AT Proto**: `/.well-known/atproto-did` on subdomains → returns team's AT Proto DID from `src/data/teams.json`
+- **Static assets**: all other requests pass through to `env.ASSETS`
+
+Routes in `wrangler.toml` cover all paths: `homegame.today/*` and `*.homegame.today/*`.
 
 Local dev:
 
 ```bash
 pnpm cf:dev
-# follow redirects when testing locally
-curl -sL 'http://127.0.0.1:8787/.well-known/webfinger?resource=acct:cubs@homegame.today' | jq .
-curl -sIL -o /dev/null -w '%{http_code} %{url_effective}\n' 'http://127.0.0.1:8787/.well-known/host-meta?resource=acct:cubs@homegame.today'
 ```
 
 Deploy requirements:
 
 - Cloudflare zone for `homegame.today`
 - Secrets in repo: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-- Wildcard route for `*.homegame.today/.well-known/atproto-did` and apex `/.well-known/*` are set in `wrangler.toml`
-- DIDs live in `src/data/teams.json` under the `did` field
 
 ## Project structure
 

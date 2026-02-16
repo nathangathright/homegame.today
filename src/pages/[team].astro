@@ -11,7 +11,7 @@ export async function getStaticPaths() {
   return teams.map((t) => ({ params: { team: t.slug } }));
 }
 
-const { params, site } = Astro;
+const { params } = Astro;
 const slug = params.team;
 const team = teams.find((t) => t.slug === slug);
 
