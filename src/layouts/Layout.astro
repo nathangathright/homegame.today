@@ -1,14 +1,15 @@
 ---
-const { bgColor, fgColor, title, description, canonical, themeColor, ogImage, rss } = Astro.props as {
-  bgColor?: string;
-  fgColor?: string;
-  title?: string;
-  description?: string;
-  canonical?: string;
-  themeColor?: string;
-  ogImage?: string;
-  rss?: string;
-};
+const { bgColor, fgColor, title, description, canonical, themeColor, ogImage, rss } =
+  Astro.props as {
+    bgColor?: string;
+    fgColor?: string;
+    title?: string;
+    description?: string;
+    canonical?: string;
+    themeColor?: string;
+    ogImage?: string;
+    rss?: string;
+  };
 ---
 
 <!doctype html>
@@ -33,7 +34,16 @@ const { bgColor, fgColor, title, description, canonical, themeColor, ogImage, rs
     <meta name="twitter:title" content={title ?? "homegame.today"} />
     {description && <meta name="twitter:description" content={description} />}
     {ogImage && <meta name="twitter:image" content={ogImage} />}
-    {rss && <link rel="alternate" type="application/rss+xml" title={`${title ?? "homegame.today"} — Bluesky RSS`} href={rss} />}
+    {
+      rss && (
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={`${title ?? "homegame.today"} — Bluesky RSS`}
+          href={rss}
+        />
+      )
+    }
   </head>
   <body style={`background:${bgColor ?? "white"};color:${fgColor ?? "inherit"}`}>
     <slot />

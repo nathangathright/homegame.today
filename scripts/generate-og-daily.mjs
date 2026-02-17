@@ -1,7 +1,12 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { Resvg } from "@resvg/resvg-js";
-import { dateKeyInZone, fetchScheduleWindowCached, computeOgText, computeWindowStartEnd } from "../src/lib/mlb.mjs";
+import {
+  dateKeyInZone,
+  fetchScheduleWindowCached,
+  computeOgText,
+  computeWindowStartEnd,
+} from "../src/lib/mlb.mjs";
 import { pickPreferredThenBW } from "../src/lib/color.mjs";
 
 const ROOT = path.resolve(process.cwd());
@@ -28,7 +33,9 @@ function escapeXml(str) {
 
 function wrapTextToLines(text, fontSize, maxWidthPx, maxLines) {
   // Split on regular ASCII whitespace only to preserve non-breaking spaces (\u00A0)
-  const words = String(text).trim().split(/[ \t\r\n\f\v]+/);
+  const words = String(text)
+    .trim()
+    .split(/[ \t\r\n\f\v]+/);
   const averageGlyphWidth = fontSize * 0.55;
   const charsPerLine = Math.max(8, Math.floor(maxWidthPx / averageGlyphWidth));
 
@@ -72,7 +79,8 @@ function createSvg({ lines, backgroundColor, fontSize, textColor }) {
   const height = 630;
   const centerX = width / 2;
   const centerY = height / 2;
-  const fontFamily = "system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif";
+  const fontFamily =
+    "system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif";
   const lineHeight = Math.round(fontSize * 1.2);
   const safeLines = lines.map(escapeXml);
 
@@ -125,13 +133,19 @@ async function main() {
   await fs.mkdir(OUT_DIR, { recursive: true });
 
   const { startIso, endIso } = computeWindowStartEnd(new Date());
+  let failures = 0;
 
   for (const team of teams) {
     const slug = team?.slug;
     if (!slug) continue;
     const primaryColor = (team.colors?.[0] ?? "#000000").toString();
     const preferredText = (team.colors?.[1] ?? "#ffffff").toString();
-    const picked = pickPreferredThenBW({ background: primaryColor, preferred: preferredText, level: "AA", textType: "large" });
+    const picked = pickPreferredThenBW({
+      background: primaryColor,
+      preferred: preferredText,
+      level: "AA",
+      textType: "large",
+    });
     const secondaryColor = picked.color ?? preferredText;
 
     try {
@@ -139,12 +153,22 @@ async function main() {
       const text = computeOgText(team, apiData);
       const todayKey = dateKeyInZone(new Date(), team?.timezone);
       const outPath = path.join(OUT_DIR, `${slug}-${todayKey}.png`);
-      const png = await renderOgPng({ text, backgroundColor: primaryColor, textColor: secondaryColor });
+      const png = await renderOgPng({
+        text,
+        backgroundColor: primaryColor,
+        textColor: secondaryColor,
+      });
       await fs.writeFile(outPath, png);
       console.log(`Daily OG generated: ${outPath}`);
     } catch (err) {
       console.error(`Failed to generate daily OG for ${team?.name ?? slug}:`, err);
+      failures++;
     }
+  }
+
+  if (failures > 0) {
+    console.error(`OG generation completed with ${failures} failure(s)`);
+    process.exit(1);
   }
 }
 

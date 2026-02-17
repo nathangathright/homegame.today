@@ -97,7 +97,12 @@ export function pickPreferredThenBW({
   textType = "normal",
 } = {}) {
   const preferredRatio = contrastRatio(background, preferred);
-  const preferredCheck = isContrastAccessible({ colorA: background, colorB: preferred, level, textType });
+  const preferredCheck = isContrastAccessible({
+    colorA: background,
+    colorB: preferred,
+    level,
+    textType,
+  });
   if (preferred && preferredRatio != null && preferredCheck.ok) {
     return { color: preferred, ratio: preferredRatio, accessible: true, min: preferredCheck.min };
   }
@@ -120,5 +125,3 @@ export default {
   pickReadableTextColor,
   pickPreferredThenBW,
 };
-
-

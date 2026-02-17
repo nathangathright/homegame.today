@@ -16,13 +16,16 @@ export function buildSportsEventJsonLd({ team, selectedGame, isHome, fallbackDat
     ? selectedGame?.teams?.away?.team?.name
     : selectedGame?.teams?.home?.team?.name;
 
-  const gameStartIso = selectedGame?.gameDate || (fallbackDateIso ? `${fallbackDateIso}T00:00:00Z` : undefined);
+  const gameStartIso =
+    selectedGame?.gameDate || (fallbackDateIso ? `${fallbackDateIso}T00:00:00Z` : undefined);
   if (!gameStartIso) return null;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SportsEvent",
-    name: isHome ? `${teamName} vs ${opponentName ?? "Opponent"}` : `${opponentName ?? "Opponent"} vs ${teamName}`,
+    name: isHome
+      ? `${teamName} vs ${opponentName ?? "Opponent"}`
+      : `${opponentName ?? "Opponent"} vs ${teamName}`,
     sport: "Baseball",
     startDate: gameStartIso,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
@@ -40,5 +43,3 @@ export function buildSportsEventJsonLd({ team, selectedGame, isHome, fallbackDat
   }
   return jsonLd;
 }
-
-

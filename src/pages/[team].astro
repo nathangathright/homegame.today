@@ -3,8 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import { pickPreferredThenBW } from "../lib/color.mjs";
 import teams from "../data/teams.json";
 import "../styles/global.css";
-import { Icon } from 'astro-icon/components';
-import { buildTeamPageData, buildDetailContent } from "../lib/mlb.mjs";
+import { Icon } from "astro-icon/components";
+import { buildTeamPageData, buildDetailContent, dateKeyInZone } from "../lib/mlb.mjs";
 
 export const prerender = true;
 export async function getStaticPaths() {
@@ -21,8 +21,17 @@ if (!team) {
 
 let data: any = null;
 let error = null;
-let facts: any = { games: [], gamesToday: [], homeGamesToday: [], awayGamesToday: [], nextHomeGame: undefined } as any;
-let pageMeta: { title: string; description: string } = { title: "Team not found | homegame.today", description: "Team not found." };
+let facts: any = {
+  games: [],
+  gamesToday: [],
+  homeGamesToday: [],
+  awayGamesToday: [],
+  nextHomeGame: undefined,
+} as any;
+let pageMeta: { title: string; description: string } = {
+  title: "Team not found | homegame.today",
+  description: "Team not found.",
+};
 let ogImage: string = "";
 let blueskyUrl: string = "";
 let blueskyRssUrl: string = "";
@@ -32,7 +41,9 @@ let mastodonAcct: string = "";
 
 if (team) {
   try {
-    const built = await buildTeamPageData(team as any, { siteBase: new URL(`https://${slug}.homegame.today`) });
+    const built = await buildTeamPageData(team as any, {
+      siteBase: new URL(`https://${slug}.homegame.today`),
+    });
     data = { __built: true } as any; // indicator not used further
     facts = built.facts;
     pageMeta = built.meta;
@@ -56,7 +67,7 @@ type ApiDate = { date?: string; games?: ApiGame[] };
 const homeGamesToday: ApiGame[] = (facts.homeGamesToday ?? []) as ApiGame[];
 
 // Always show today's date at the top of the page
-const pageDateIso = new Date().toISOString().slice(0, 10);
+const pageDateIso = dateKeyInZone(new Date(), (team as any)?.timezone);
 function formatDateIsoToLong(isoDate: string) {
   try {
     return new Date(isoDate + "T00:00:00").toLocaleDateString(undefined, { dateStyle: "full" });
@@ -68,7 +79,6 @@ const pageDateLabel = formatDateIsoToLong(pageDateIso);
 const siteName = "homegame.today";
 const teamName = team?.name ?? "Team";
 const hasHomeToday = homeGamesToday.length > 0;
-const teamTimeZone = (team as any)?.timezone as string | undefined;
 const pageTitle = pageMeta.title;
 const pageDescription = pageMeta.description;
 const canonical = `https://${slug}.homegame.today`;
@@ -76,9 +86,15 @@ const canonical = `https://${slug}.homegame.today`;
 // Compute contrast-aware colors for the page chrome
 const bg = (team?.colors?.[0] ?? "#000000").toString();
 const preferred = (team?.colors?.[1] ?? "#ffffff").toString();
-const picked = (pickPreferredThenBW as any)({ background: bg, preferred, level: "AA", textType: "large" });
+const picked = (pickPreferredThenBW as any)({
+  background: bg,
+  preferred,
+  level: "AA",
+  textType: "large",
+});
 const fg = (picked?.color ?? preferred) as string;
 ---
+
 <Layout
   title={pageTitle}
   description={pageDescription}
@@ -110,12 +126,16 @@ const fg = (picked?.color ?? preferred) as string;
         {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
         <div class="h-dvh grid place-items-center text-center">
           <header class="px-8 flex justify-center w-full">
-            <time class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 text-pretty" datetime={pageDateIso}>
+            <time
+              class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 text-pretty"
+              datetime={pageDateIso}
+            >
               {pageDateLabel}
             </time>
-            
           </header>
-          <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">{hasHomeToday ? "Yes" : "No"}</div>
+          <div class="text-[clamp(6rem,18vw,18rem)] font-extrabold tracking-tight leading-none">
+            {hasHomeToday ? "Yes" : "No"}
+          </div>
           <footer>
             <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 px-8 text-pretty">
               {(() => {
@@ -123,24 +143,57 @@ const fg = (picked?.color ?? preferred) as string;
                 if (detail.fallback) return detail.fallback;
                 return (
                   <>
-                    {detail.pre}<time class="whitespace-nowrap" datetime={detail.iso}>{detail.label}</time>.
+                    {detail.pre}
+                    <time class="whitespace-nowrap" datetime={detail.iso}>
+                      {detail.label}
+                    </time>
+                    .
                   </>
                 );
               })()}
             </div>
             <nav class="flex justify-center gap-4 mt-4">
-            {blueskyUrl && (
-              <>
-                <a aria-label="Open team Bluesky profile" rel="noopener noreferrer" target="_blank" href={blueskyUrl} class="block"><Icon name="ph:butterfly-duotone" class="w-8 h-8" /></a>
-                {mastodonActorUrl && mastodonAcct && (
-                  <a aria-label="Open team Mastodon profile" href={mastodonActorUrl} class="block" data-masto-acct={mastodonAcct}>
-                    <Icon name="ph:mastodon-logo-duotone" class="w-8 h-8" />
+              {blueskyUrl && (
+                <>
+                  <a
+                    aria-label="Open team Bluesky profile"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    href={blueskyUrl}
+                    class="block"
+                  >
+                    <Icon name="ph:butterfly-duotone" class="w-8 h-8" />
                   </a>
-                )}
-                <a aria-label="Open team Bluesky RSS" rel="noopener noreferrer" target="_blank" href={blueskyRssUrl} class="block"><Icon name="ph:rss-duotone" class="w-8 h-8" /></a>
-              </>
-            )}
-            <a aria-label="Open Github repo" rel="noopener noreferrer" target="_blank" href="https://github.com/nathangathright/homegame.today" class="block"><Icon name="ph:github-logo-duotone" class="w-8 h-8" /></a>
+                  {mastodonActorUrl && mastodonAcct && (
+                    <a
+                      aria-label="Open team Mastodon profile"
+                      href={mastodonActorUrl}
+                      class="block"
+                      data-masto-acct={mastodonAcct}
+                    >
+                      <Icon name="ph:mastodon-logo-duotone" class="w-8 h-8" />
+                    </a>
+                  )}
+                  <a
+                    aria-label="Open team Bluesky RSS"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    href={blueskyRssUrl}
+                    class="block"
+                  >
+                    <Icon name="ph:rss-duotone" class="w-8 h-8" />
+                  </a>
+                </>
+              )}
+              <a
+                aria-label="Open Github repo"
+                rel="noopener noreferrer"
+                target="_blank"
+                href="https://github.com/nathangathright/homegame.today"
+                class="block"
+              >
+                <Icon name="ph:github-logo-duotone" class="w-8 h-8" />
+              </a>
             </nav>
           </footer>
         </div>
@@ -154,18 +207,21 @@ const fg = (picked?.color ?? preferred) as string;
     function handleClick(ev) {
       ev.preventDefault();
       const el = ev.currentTarget;
-      const acct = el?.getAttribute?.('data-masto-acct');
+      const acct = el?.getAttribute?.("data-masto-acct");
       if (!acct) return;
-      const home = window.prompt('Enter your Mastodon server (e.g. mastodon.social)', '');
+      const home = window.prompt("Enter your Mastodon server (e.g. mastodon.social)", "");
       if (!home) return;
-      const h = String(home).trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+      const h = String(home)
+        .trim()
+        .replace(/^https?:\/\//i, "")
+        .replace(/\/$/, "");
       if (!h) return;
       const url = `https://${h}/authorize_interaction?uri=${acct}`;
       window.location.href = url;
     }
-    document.addEventListener('DOMContentLoaded', function () {
-      document.querySelectorAll('a[data-masto-acct]')?.forEach((a) => {
-        a.addEventListener('click', handleClick);
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll("a[data-masto-acct]")?.forEach((a) => {
+        a.addEventListener("click", handleClick);
       });
     });
   })();

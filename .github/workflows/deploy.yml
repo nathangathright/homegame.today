@@ -10,6 +10,9 @@ on:
     - cron: "0 9 * 3-10 *"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: "deploy"
   cancel-in-progress: false
@@ -27,14 +30,24 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "latest"
+          node-version: "22"
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm format:check
 
       - name: Lint
         run: pnpm lint
+
+      - name: Type check
+        run: pnpm astro check
+
+      - name: Audit dependencies
+        run: pnpm audit --prod
+        continue-on-error: true
 
       - name: Build
         run: pnpm build

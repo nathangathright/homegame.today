@@ -1,9 +1,58 @@
 // Shared MLB helpers for schedule fetching and formatting
 import { buildSportsEventJsonLd } from "./seo.mjs";
 
+const FETCH_TIMEOUT_MS = 10_000;
+
+// Merge regular-season and postseason game arrays, de-dupe by gamePk (preferring
+// entries with a concrete gameDate), sort chronologically, and re-group by date key.
+function mergeAndGroupGames(regDates, psDates, fallbackDateKey = "") {
+  const allDates = [...regDates, ...psDates];
+  const allGames = allDates.flatMap((d) => (Array.isArray(d?.games) ? d.games : []));
+
+  const byPk = new Map();
+  for (const g of allGames) {
+    const pk = (g?.gamePk ?? g?.gamePk === 0) ? g.gamePk : undefined;
+    if (pk == null) continue;
+    const existing = byPk.get(pk);
+    if (!existing) {
+      byPk.set(pk, g);
+    } else if (!existing.gameDate && g.gameDate) {
+      byPk.set(pk, g);
+    }
+  }
+
+  const mergedGames = Array.from(byPk.values()).sort((a, b) => {
+    const ta = a?.gameDate ? new Date(a.gameDate).getTime() : Number.POSITIVE_INFINITY;
+    const tb = b?.gameDate ? new Date(b.gameDate).getTime() : Number.POSITIVE_INFINITY;
+    return ta - tb;
+  });
+
+  const grouped = new Map();
+  for (const g of mergedGames) {
+    const iso = g?.gameDate ? String(g.gameDate) : "";
+    const day = iso ? iso.slice(0, 10) : fallbackDateKey;
+    if (!grouped.has(day)) grouped.set(day, []);
+    grouped.get(day).push(g);
+  }
+
+  return {
+    totalItems: mergedGames.length,
+    dates: Array.from(grouped.entries()).map(([date, games]) => ({
+      date,
+      totalGames: games.length,
+      games,
+    })),
+  };
+}
+
 export function dateKeyInZone(d, timeZone) {
   try {
-    return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
   } catch {
     return new Date(d).toISOString().slice(0, 10);
   }
@@ -25,8 +74,14 @@ export async function fetchLeagueScheduleToday() {
   psUrl.searchParams.set("endDate", today);
 
   const [regRes, psRes] = await Promise.all([
-    fetch(regUrl.toString(), { headers: { accept: "application/json" } }),
-    fetch(psUrl.toString(), { headers: { accept: "application/json" } }),
+    fetch(regUrl.toString(), {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    }),
+    fetch(psUrl.toString(), {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    }),
   ]);
 
   // Be tolerant of errors here; this function is used as a soft guard
@@ -47,43 +102,9 @@ export async function fetchLeagueScheduleToday() {
     psJson = { dates: [] };
   }
 
-  // Merge dates arrays and de-dupe games by gamePk
   const regDates = Array.isArray(regJson?.dates) ? regJson.dates : [];
   const psDates = Array.isArray(psJson?.dates) ? psJson.dates : [];
-  const allDates = [...regDates, ...psDates];
-
-  const allGames = allDates.flatMap((d) => (Array.isArray(d?.games) ? d.games : []));
-  const byPk = new Map();
-  for (const g of allGames) {
-    const pk = g?.gamePk ?? g?.gamePk === 0 ? g.gamePk : undefined;
-    if (pk == null) continue;
-    const existing = byPk.get(pk);
-    if (!existing) {
-      byPk.set(pk, g);
-    } else if (!existing.gameDate && g.gameDate) {
-      byPk.set(pk, g);
-    }
-  }
-
-  const mergedGames = Array.from(byPk.values()).sort((a, b) => {
-    const ta = a?.gameDate ? new Date(a.gameDate).getTime() : Number.POSITIVE_INFINITY;
-    const tb = b?.gameDate ? new Date(b.gameDate).getTime() : Number.POSITIVE_INFINITY;
-    return ta - tb;
-  });
-
-  // Re-group by date key (YYYY-MM-DD)
-  const grouped = new Map();
-  for (const g of mergedGames) {
-    const iso = g?.gameDate ? String(g.gameDate) : "";
-    const day = iso ? iso.slice(0, 10) : today;
-    if (!grouped.has(day)) grouped.set(day, []);
-    grouped.get(day).push(g);
-  }
-
-  return {
-    totalItems: mergedGames.length,
-    dates: Array.from(grouped.entries()).map(([date, games]) => ({ date, totalGames: games.length, games })),
-  };
+  return mergeAndGroupGames(regDates, psDates, today);
 }
 
 export async function fetchScheduleWindow(teamId, startDateIso, endDateIso) {
@@ -101,8 +122,14 @@ export async function fetchScheduleWindow(teamId, startDateIso, endDateIso) {
   if (endDateIso) psUrl.searchParams.set("endDate", endDateIso);
 
   const [regRes, psRes] = await Promise.all([
-    fetch(baseUrl.toString(), { headers: { accept: "application/json" } }),
-    fetch(psUrl.toString(), { headers: { accept: "application/json" } }),
+    fetch(baseUrl.toString(), {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    }),
+    fetch(psUrl.toString(), {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    }),
   ]);
 
   if (!regRes.ok) {
@@ -127,52 +154,14 @@ export async function fetchScheduleWindow(teamId, startDateIso, endDateIso) {
     psJson = { dates: [] };
   }
 
-  // Merge dates arrays and de-dupe games by gamePk
   const regDates = Array.isArray(regJson?.dates) ? regJson.dates : [];
   const psDates = Array.isArray(psJson?.dates) ? psJson.dates : [];
-  const allDates = [...regDates, ...psDates];
-
-  // Flatten, merge, and rebuild minimal schedule shape compatible with consumers
-  const allGames = allDates.flatMap((d) => (Array.isArray(d?.games) ? d.games : []));
-  const byPk = new Map();
-  for (const g of allGames) {
-    const pk = g?.gamePk ?? g?.gamePk === 0 ? g.gamePk : undefined;
-    if (pk == null) continue;
-    // Prefer entries that have a concrete gameDate
-    const existing = byPk.get(pk);
-    if (!existing) {
-      byPk.set(pk, g);
-    } else if (!existing.gameDate && g.gameDate) {
-      byPk.set(pk, g);
-    }
-  }
-
-  const mergedGames = Array.from(byPk.values()).sort((a, b) => {
-    const ta = a?.gameDate ? new Date(a.gameDate).getTime() : Number.POSITIVE_INFINITY;
-    const tb = b?.gameDate ? new Date(b.gameDate).getTime() : Number.POSITIVE_INFINITY;
-    return ta - tb;
-  });
-
-  // Re-group by date key (YYYY-MM-DD) as schedule endpoint returns
-  const grouped = new Map();
-  for (const g of mergedGames) {
-    const iso = g?.gameDate ? String(g.gameDate) : "";
-    const day = iso ? iso.slice(0, 10) : "";
-    if (!grouped.has(day)) grouped.set(day, []);
-    grouped.get(day).push(g);
-  }
-
-  const merged = {
-    totalItems: mergedGames.length,
-    dates: Array.from(grouped.entries()).map(([date, games]) => ({ date, totalGames: games.length, games })),
-  };
-
-  return merged;
+  return mergeAndGroupGames(regDates, psDates);
 }
 
 export function deriveTeamScheduleFacts(team, apiData) {
   const dates = Array.isArray(apiData?.dates) ? apiData.dates : [];
-  const games = dates.flatMap((d) => Array.isArray(d?.games) ? d.games : []);
+  const games = dates.flatMap((d) => (Array.isArray(d?.games) ? d.games : []));
   const teamTimeZone = team?.timezone;
   const todayKey = dateKeyInZone(new Date(), teamTimeZone);
 
@@ -204,7 +193,15 @@ export function deriveTeamScheduleFacts(team, apiData) {
     .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
   const nextHomeGame = upcomingHomeGames.find((g) => new Date(g.gameDate).getTime() >= nowTs);
 
-  return { games, teamTimeZone, todayKey, gamesToday, homeGamesToday, awayGamesToday, nextHomeGame };
+  return {
+    games,
+    teamTimeZone,
+    todayKey,
+    gamesToday,
+    homeGamesToday,
+    awayGamesToday,
+    nextHomeGame,
+  };
 }
 
 // Window horizon configuration
@@ -241,19 +238,17 @@ export function getLocalDateAndOptionalTime(game, timeZone, options = {}) {
   const { dateStyle = "medium", timeStyle = "short" } = options;
   const iso = game?.gameDate;
   const d = iso ? new Date(iso) : null;
-  const datePart = d
-    ? d.toLocaleDateString(undefined, { dateStyle, timeZone })
-    : "";
+  const datePart = d ? d.toLocaleDateString(undefined, { dateStyle, timeZone }) : "";
   const timeCertain = !isStartTimeTbd(game);
-  const timePart = timeCertain && d
-    ? d.toLocaleTimeString(undefined, { timeStyle, timeZone })
-    : undefined;
+  const timePart =
+    timeCertain && d ? d.toLocaleTimeString(undefined, { timeStyle, timeZone }) : undefined;
   return { datePart, timePart, timeCertain };
 }
 
 // Bluesky helpers
 export const getBlueskyHandle = (team) => `${team.slug}.homegame.today`;
-export const getBlueskyDid = (team) => (team && typeof team.did === "string" ? team.did : undefined);
+export const getBlueskyDid = (team) =>
+  team && typeof team.did === "string" ? team.did : undefined;
 export const getBlueskyProfileUrl = (team) => {
   const did = getBlueskyDid(team);
   return did ? `https://bsky.app/profile/${did}` : "";
@@ -264,8 +259,10 @@ export const getBlueskyRssUrl = (team) => {
 };
 
 // Mastodon (via Bridgy Fed) helpers – only when DID exists
-export const getMastodonAcct = (team) => (getBlueskyDid(team) ? `${team.slug}.homegame.today@bsky.brid.gy` : "");
-export const getMastodonActorUrl = (team) => (getBlueskyDid(team) ? `https://bsky.brid.gy/ap/@${team.slug}.homegame.today` : "");
+export const getMastodonAcct = (team) =>
+  getBlueskyDid(team) ? `${team.slug}.homegame.today@bsky.brid.gy` : "";
+export const getMastodonActorUrl = (team) =>
+  getBlueskyDid(team) ? `https://bsky.brid.gy/ap/@${team.slug}.homegame.today` : "";
 
 // Per-run schedule window cache to avoid duplicate HTTP fetches
 const _scheduleWindowCache = new Map();
@@ -282,7 +279,8 @@ export function formatTeamStatus(team, apiData, opts = {}) {
   const { includeTeamName = false, nbsp = false, dateStyle = "medium" } = opts;
   const venue = team?.venue ?? "their stadium";
   const { games, teamTimeZone, todayKey } = deriveTeamScheduleFacts(team, apiData);
-  const isToday = (g) => (g?.gameDate ? dateKeyInZone(new Date(g.gameDate), teamTimeZone) === todayKey : false);
+  const isToday = (g) =>
+    g?.gameDate ? dateKeyInZone(new Date(g.gameDate), teamTimeZone) === todayKey : false;
   const homeToday = games.filter(isToday).filter((g) => g?.teams?.home?.team?.id === team?.id);
 
   const prefix = includeTeamName ? `${team.name} — ` : "";
@@ -290,10 +288,15 @@ export function formatTeamStatus(team, apiData, opts = {}) {
   const nb = (s) => (nbsp ? String(s).replace(/ /g, "\u00A0") : String(s));
 
   if (homeToday.length > 0) {
-    const { timePart, timeCertain } = getLocalDateAndOptionalTime(homeToday[0], teamTimeZone, { timeStyle: "short" });
-    return prefix + (timeCertain && timePart
-      ? `Yes, today’s game at ${venue} is scheduled for ${nb(timePart)}.`
-      : `Yes, today’s game at ${venue} is scheduled.`);
+    const { timePart, timeCertain } = getLocalDateAndOptionalTime(homeToday[0], teamTimeZone, {
+      timeStyle: "short",
+    });
+    return (
+      prefix +
+      (timeCertain && timePart
+        ? `Yes, today’s game at ${venue} is scheduled for ${nb(timePart)}.`
+        : `Yes, today’s game at ${venue} is scheduled.`)
+    );
   }
 
   const nowTs = Date.now();
@@ -303,11 +306,17 @@ export function formatTeamStatus(team, apiData, opts = {}) {
     .find((g) => new Date(g.gameDate).getTime() >= nowTs);
 
   if (upcomingHome?.gameDate) {
-    const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(upcomingHome, teamTimeZone, { dateStyle, timeStyle: "short" });
+    const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(
+      upcomingHome,
+      teamTimeZone,
+      { dateStyle, timeStyle: "short" }
+    );
     const safeDate = nb(datePart);
     if (timeCertain && timePart) {
       const safeTime = nb(timePart);
-      return prefix + `No, the next game at ${venue} is scheduled for ${safeDate} at${space}${safeTime}.`;
+      return (
+        prefix + `No, the next game at ${venue} is scheduled for ${safeDate} at${space}${safeTime}.`
+      );
     }
     return prefix + `No, the next game at ${venue} is scheduled for ${safeDate}.`;
   }
@@ -317,11 +326,19 @@ export function formatTeamStatus(team, apiData, opts = {}) {
 
 // Backwards-compatible wrappers
 export function computeOgText(team, apiData) {
-  return formatTeamStatus(team, apiData, { includeTeamName: false, nbsp: true, dateStyle: "medium" });
+  return formatTeamStatus(team, apiData, {
+    includeTeamName: false,
+    nbsp: true,
+    dateStyle: "medium",
+  });
 }
 
 export function computeStatusForTeam(team, apiData) {
-  return formatTeamStatus(team, apiData, { includeTeamName: true, nbsp: false, dateStyle: "medium" });
+  return formatTeamStatus(team, apiData, {
+    includeTeamName: true,
+    nbsp: false,
+    dateStyle: "medium",
+  });
 }
 
 // Selects the primary game to feature for JSON-LD (home preferred, else away)
@@ -341,7 +358,11 @@ export function getOgImagePath(slug, timeZone) {
 export function buildTeamPageMeta(team, apiData) {
   const siteName = "homegame.today";
   const teamName = team?.name ?? "Team";
-  const message = formatTeamStatus(team, apiData, { includeTeamName: false, nbsp: false, dateStyle: "medium" });
+  const message = formatTeamStatus(team, apiData, {
+    includeTeamName: false,
+    nbsp: false,
+    dateStyle: "medium",
+  });
   // Title format: "<Team> — Yes|No | homegame.today"
   const hasHome = /^(Yes)/.test(message);
   const answer = hasHome ? "Yes" : "No";
@@ -362,8 +383,13 @@ export async function buildTeamPageData(team, options = {}) {
   const ogImage = siteBase ? new URL(ogPath, siteBase).toString() : ogPath;
 
   const { selectedGame, isHome } = selectGameForTeamToday(facts);
-  const pageDateIso = new Date().toISOString().slice(0, 10);
-  const jsonLd = buildSportsEventJsonLd({ team, selectedGame, isHome, fallbackDateIso: pageDateIso });
+  const pageDateIso = dateKeyInZone(new Date(), team?.timezone);
+  const jsonLd = buildSportsEventJsonLd({
+    team,
+    selectedGame,
+    isHome,
+    fallbackDateIso: pageDateIso,
+  });
 
   const bluesky = {
     profile: getBlueskyProfileUrl(team),
@@ -399,7 +425,10 @@ export function buildDetailContent(team, facts) {
   // Next upcoming home game
   const nextHome = facts?.nextHomeGame;
   if (nextHome?.gameDate) {
-    const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(nextHome, tz, { dateStyle: "medium", timeStyle: "short" });
+    const { datePart, timePart, timeCertain } = getLocalDateAndOptionalTime(nextHome, tz, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
     const dt = new Date(nextHome.gameDate);
     const label = timeCertain && timePart ? `${datePart} at ${timePart}` : `${datePart}`;
     return { pre: `The next game at ${venue} is scheduled for `, iso: dt.toISOString(), label };
@@ -407,5 +436,3 @@ export function buildDetailContent(team, facts) {
 
   return { fallback: `The next game at ${venue} is not yet scheduled.` };
 }
-
-

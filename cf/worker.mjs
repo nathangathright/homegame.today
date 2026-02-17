@@ -1,9 +1,23 @@
 // Avoid ESM import assertion to keep ESLint happy; workers bundler will inline this
 import teams from "../src/data/teams.json";
 
+const SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "SAMEORIGIN",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+};
+
+function withSecurityHeaders(response) {
+  const resp = new Response(response.body, response);
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) {
+    resp.headers.set(k, v);
+  }
+  return resp;
+}
+
 function textResponse(body, init = {}) {
   return new Response(body, {
-    headers: { "content-type": "text/plain; charset=utf-8" },
+    headers: { "content-type": "text/plain; charset=utf-8", ...SECURITY_HEADERS },
     ...init,
   });
 }
@@ -81,12 +95,12 @@ export default {
       if (pathname === "/" || pathname === "") {
         if (slug) {
           const rewritten = new URL(`/${slug}/`, url.origin);
-          return env.ASSETS.fetch(new Request(rewritten, request));
+          return withSecurityHeaders(await env.ASSETS.fetch(new Request(rewritten, request)));
         }
       }
 
       // Everything else on subdomains (CSS, JS, images, og, api) → pass through to assets
-      return env.ASSETS.fetch(request);
+      return withSecurityHeaders(await env.ASSETS.fetch(request));
     }
 
     // --- Apex requests (homegame.today) ---
@@ -117,6 +131,6 @@ export default {
     }
 
     // Everything else on apex (homepage, static files, API) → pass through to assets
-    return env.ASSETS.fetch(request);
+    return withSecurityHeaders(await env.ASSETS.fetch(request));
   },
 };

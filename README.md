@@ -80,12 +80,15 @@ Utilities:
 ## Bluesky (for contributors)
 
 - CI posts only when credentials exist; local manual test for a team:
+
 ```bash
 BLUESKY_PASSWORD_CUBS=your-app-password pnpm post:bluesky
 ```
+
 - Posts use `formatTeamStatus` and attach the daily OG if available.
 
 ## Static API (optional)
+
 - `GET /api/team/[slug].json` returns the same data used to render pages.
 
 ## Cloudflare Worker

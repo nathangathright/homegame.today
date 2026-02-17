@@ -1,5 +1,6 @@
 import teams from "../../../data/teams.json";
 import {
+  dateKeyInZone,
   computeWindowStartEnd,
   fetchScheduleWindowCached,
   deriveTeamScheduleFacts,
@@ -38,8 +39,13 @@ export async function GET({ params, site }: { params: { slug?: string }; site: U
     const ogImage = site ? new URL(ogPath, site).toString() : ogPath;
 
     const { selectedGame, isHome } = selectGameForTeamToday(facts);
-    const pageDateIso = new Date().toISOString().slice(0, 10);
-    const jsonLd = buildSportsEventJsonLd({ team, selectedGame, isHome, fallbackDateIso: pageDateIso });
+    const pageDateIso = dateKeyInZone(new Date(), team?.timezone);
+    const jsonLd = buildSportsEventJsonLd({
+      team,
+      selectedGame,
+      isHome,
+      fallbackDateIso: pageDateIso,
+    });
 
     const payload = {
       team: {
@@ -75,5 +81,3 @@ export async function GET({ params, site }: { params: { slug?: string }; site: U
     });
   }
 }
-
-

@@ -14,7 +14,9 @@ const ogImage = site ? new URL(`/og/site.png`, site).toString() : `/og/site.png`
 <Layout title={`${pageTitle} | ${siteTitle}`} description={description} ogImage={ogImage}>
   <header class="grid gap-3 justify-items-center text-center pt-12 px-6 pb-5">
     <h1 class="m-0 font-extrabold tracking-tight text-[clamp(2rem,6vw,3rem)]">homegame.today</h1>
-    <p class="m-0 opacity-80 text-[clamp(1rem,2.5vw,1.125rem)]">Select your team to see if there’s a home game today.</p>
+    <p class="m-0 opacity-80 text-[clamp(1rem,2.5vw,1.125rem)]">
+      Select your team to see if there’s a home game today.
+    </p>
     <label class="block w-full">
       <span class="sr-only">Search teams</span>
       <input
@@ -32,8 +34,15 @@ const ogImage = site ? new URL(`/og/site.png`, site).toString() : `/og/site.png`
     {
       sortedTeams.map((team) => (
         <li class="list-none" data-team={team.name.toLowerCase()}>
-          <a aria-label={`Go to ${team.name} page`} class="flex items-center gap-3 px-4 py-3.5 no-underline bg-white border border-gray-200 rounded-xl duration-150 ease-out hover:-translate-y-px hover:bg-gray-50 hover:border-gray-300" href={`https://${team.slug}.homegame.today`}>
-            <span class="w-3 h-3 rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" style={`background:${team.colors?.[0] ?? "#e5e7eb"}`} />
+          <a
+            aria-label={`Go to ${team.name} page`}
+            class="flex items-center gap-3 px-4 py-3.5 no-underline bg-white border border-gray-200 rounded-xl duration-150 ease-out hover:-translate-y-px hover:bg-gray-50 hover:border-gray-300"
+            href={`https://${team.slug}.homegame.today`}
+          >
+            <span
+              class="w-3 h-3 rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
+              style={`background:${team.colors?.[0] ?? "#e5e7eb"}`}
+            />
             <span class="font-semibold tracking-tight">{team.name}</span>
           </a>
         </li>
@@ -44,7 +53,7 @@ const ogImage = site ? new URL(`/og/site.png`, site).toString() : `/og/site.png`
   <script>
     const searchInput = document.getElementById("team-search") as HTMLInputElement | null;
     const grid = document.getElementById("team-grid") as HTMLElement | null;
-    const items = Array.from(grid?.querySelectorAll('[data-team]') ?? []) as HTMLElement[];
+    const items = Array.from(grid?.querySelectorAll("[data-team]") ?? []) as HTMLElement[];
     const emptyState = document.getElementById("no-results") as HTMLElement | null;
 
     function normalize(text: string): string {

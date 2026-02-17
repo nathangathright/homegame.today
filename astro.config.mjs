@@ -6,7 +6,7 @@ import icon from "astro-icon";
 import { readFileSync } from "node:fs";
 
 const teams = JSON.parse(readFileSync("./src/data/teams.json", "utf-8"));
-const teamSlugs = new Set(teams.map((t) => t.slug));
+const teamSlugs = new Set(teams.map((/** @type {{ slug: string }} */ t) => t.slug));
 
 // https://astro.build/config
 export default defineConfig({

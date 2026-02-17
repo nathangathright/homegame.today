@@ -1,7 +1,16 @@
 import { AtpAgent } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fetchLeagueScheduleToday, fetchScheduleWindowCached, computeStatusForTeam, dateKeyInZone, computeWindowStartEnd, getBlueskyHandle, getBlueskyDid, deriveTeamScheduleFacts } from "../src/lib/mlb.mjs";
+import {
+  fetchLeagueScheduleToday,
+  fetchScheduleWindowCached,
+  computeStatusForTeam,
+  dateKeyInZone,
+  computeWindowStartEnd,
+  getBlueskyHandle,
+  getBlueskyDid,
+  deriveTeamScheduleFacts,
+} from "../src/lib/mlb.mjs";
 if (process.env.CI !== "true" && process.env.GITHUB_ACTIONS !== "true") {
   await import("dotenv/config");
 }
@@ -28,20 +37,20 @@ function extractNextHomeGameDate(team, apiData) {
  */
 function parseNextGameDateFromText(text, teamTimeZone) {
   if (!text) return null;
-  
+
   // Match patterns like "scheduled for Oct 8, 2025" or "scheduled for October 8, 2025"
   const datePattern = /scheduled for ([A-Za-z]+ \d{1,2}, \d{4})/;
   const match = text.match(datePattern);
-  
+
   if (!match) return null;
-  
+
   try {
     // Parse the date string (e.g., "Oct 8, 2025")
     const dateStr = match[1];
     const parsed = new Date(dateStr);
-    
+
     if (isNaN(parsed.getTime())) return null;
-    
+
     // Return as YYYY-MM-DD in the team's timezone
     return dateKeyInZone(parsed, teamTimeZone);
   } catch {
@@ -76,7 +85,7 @@ async function main() {
   try {
     const leagueData = await fetchLeagueScheduleToday();
     const leagueDates = Array.isArray(leagueData?.dates) ? leagueData.dates : [];
-    const leagueGames = leagueDates.flatMap((d) => Array.isArray(d?.games) ? d.games : []);
+    const leagueGames = leagueDates.flatMap((d) => (Array.isArray(d?.games) ? d.games : []));
     if (leagueGames.length === 0) {
       console.log("No MLB games today — skipping Bluesky posts.");
       return;
@@ -88,7 +97,7 @@ async function main() {
 
   const teams = await readTeams();
   let attemptedCount = 0; // teams with a configured password
-  let successCount = 0;   // posts that succeeded
+  let successCount = 0; // posts that succeeded
 
   for (const team of teams) {
     const slug = String(team?.slug || "");
@@ -162,16 +171,22 @@ async function main() {
           continue;
         }
       }
-      
+
       // Check if the next home game date is the same as the previous post
       const currentNextGameDate = extractNextHomeGameDate(team, data);
       const previousNextGameDate = parseNextGameDateFromText(latest?.value?.text, teamTimeZone);
-      
-      if (currentNextGameDate && previousNextGameDate && currentNextGameDate.startsWith(previousNextGameDate)) {
-        console.log(`Next game date unchanged for ${team.name} (${slug}): ${previousNextGameDate} — skipping.`);
+
+      if (
+        currentNextGameDate &&
+        previousNextGameDate &&
+        currentNextGameDate.startsWith(previousNextGameDate)
+      ) {
+        console.log(
+          `Next game date unchanged for ${team.name} (${slug}): ${previousNextGameDate} — skipping.`
+        );
         continue;
       }
-      
+
       // Fallback: also skip if text is exactly the same
       if (latest?.value?.text && latest.value.text === postText) {
         console.log(`Duplicate text for ${team.name} (${slug}) — skipping.`);

@@ -36,6 +36,7 @@ All 30 teams are defined in `src/data/teams.json` (ID, slug, colors, venue, time
 ### Core Logic (`src/lib/mlb.mjs`)
 
 Central module containing all MLB schedule logic:
+
 - `dateKeyInZone()` — dates computed in each team's local timezone, not UTC
 - `fetchScheduleWindow()` — fetches regular season + postseason, dedupes by `gamePk`
 - `fetchScheduleWindowCached()` — per-run in-memory HTTP cache
@@ -47,6 +48,7 @@ Central module containing all MLB schedule logic:
 ### Cloudflare Worker (`cf/worker.mjs`)
 
 Unified worker serving the entire site via Workers Static Assets (`env.ASSETS`):
+
 - **Subdomain routing**: `cubs.homegame.today/` → rewrites to `/cubs/` and serves from static assets
 - **Apex redirects**: `homegame.today/cubs` → 301 redirect to `cubs.homegame.today`
 - **Federation**: WebFinger/host-meta on apex → redirects to Bridgy Fed for ActivityPub
