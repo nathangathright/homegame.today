@@ -17,10 +17,13 @@ pnpm lint             # ESLint check
 pnpm lint:fix         # ESLint autofix
 pnpm format           # Prettier format
 pnpm format:check     # Prettier check
+pnpm astro check      # TypeScript type checking
 pnpm cf:dev           # Local Cloudflare Worker dev
 pnpm cf:deploy        # Deploy Cloudflare Worker
 pnpm post:bluesky     # Post to Bluesky (requires BLUESKY_PASSWORD_<SLUG> env vars)
 ```
+
+CI runs: format:check → lint → astro check → build → deploy (deploy skipped on PRs).
 
 ## Architecture
 
@@ -61,6 +64,7 @@ Unified worker serving the entire site via Workers Static Assets (`env.ASSETS`):
 - **Schedule merging**: regular season + postseason queried in parallel, deduped by `gamePk`, prefers entries with concrete `gameDate`
 - **Home game detection**: matches on team ID for regular season, falls back to venue name for postseason placeholders
 - **WCAG 2.1 contrast** (`src/lib/color.mjs`): team colors are checked for accessibility before use
+- **OG image output**: `public/og/` during dev (via `predev` hook), `dist/og/` in production build
 
 ### Deployment
 
@@ -71,6 +75,13 @@ Unified worker serving the entire site via Workers Static Assets (`env.ASSETS`):
 ## Style
 
 - ESLint flat config (`eslint.config.mjs`) with astro and typescript-eslint plugins
-- Prettier with 100-char width, double quotes, ES5 trailing commas
+- Prettier with 100-char width, double quotes, ES5 trailing commas, semicolons
 - Source files use `.mjs` for plain JS modules, `.ts` for typed endpoints
-- No unit tests; CI validates lint + successful build
+- No unit tests; CI validates format, lint, type check, and successful build
+- Pre-commit hook (simple-git-hooks + lint-staged) auto-formats staged files with Prettier
+
+## Contributing Conventions
+
+- Centralize schedule logic in `src/lib/mlb.mjs`; keep `[team].astro` as a thin template
+- Surface new data by adding it to `buildTeamPageData()` rather than fetching in pages
+- Use explicit helper names (e.g. `dateKeyInZone` not `getDate`)
