@@ -20,6 +20,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.13
         version: 4.1.13(vite@6.4.1(@types/node@24.5.0)(jiti@2.5.1)(lightningcss@1.30.1)(yaml@2.8.2))
+      apca-w3:
+        specifier: ^0.1.9
+        version: 0.1.9
       astro:
         specifier: ^5.17.2
         version: 5.17.2(@types/node@24.5.0)(jiti@2.5.1)(lightningcss@1.30.1)(rollup@4.57.1)(typescript@5.9.2)(yaml@2.8.2)
@@ -1557,6 +1560,9 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
+  apca-w3@0.1.9:
+    resolution: {integrity: sha512-Zrf6AeBeQjNe/fxK7U1jCo5zfdjDl6T4/kdw5Xlky3G7u+EJTZkyItjMYQGtwf9pkftsINxcYyOpuLkzKf1ITQ==}
+
   arg@5.0.2:
     resolution: {integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==}
 
@@ -1728,6 +1734,9 @@ packages:
 
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
+
+  colorparsley@0.1.8:
+    resolution: {integrity: sha512-rObESTTTE6G5qO5WFwFxWPggpw4KfpxnLC6Ssl8bITBnNVRhDsyCeTRAUxWQNVTx2pRknKlO2nddYTxjkdNFaw==}
 
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
@@ -4878,6 +4887,10 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
+  apca-w3@0.1.9:
+    dependencies:
+      colorparsley: 0.1.8
+
   arg@5.0.2: {}
 
   argparse@2.0.1: {}
@@ -5166,6 +5179,8 @@ snapshots:
       color-string: 1.9.1
 
   colorette@2.0.20: {}
+
+  colorparsley@0.1.8: {}
 
   combined-stream@1.0.8:
     dependencies:

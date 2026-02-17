@@ -89,8 +89,7 @@ const preferred = (team?.colors?.[1] ?? "#ffffff").toString();
 const picked = (pickPreferredThenBW as any)({
   background: bg,
   preferred,
-  level: "AA",
-  textType: "large",
+  minLc: 45,
 });
 const fg = (picked?.color ?? preferred) as string;
 ---

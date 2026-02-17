@@ -143,8 +143,7 @@ async function main() {
     const picked = pickPreferredThenBW({
       background: primaryColor,
       preferred: preferredText,
-      level: "AA",
-      textType: "large",
+      minLc: 45,
     });
     const secondaryColor = picked.color ?? preferredText;
 

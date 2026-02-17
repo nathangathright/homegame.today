@@ -23,6 +23,7 @@
     "@atproto/api": "^0.13.21",
     "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.1.13",
+    "apca-w3": "^0.1.9",
     "astro": "^5.17.2",
     "astro-icon": "^1.1.5",
     "dotenv": "^16.6.1",
