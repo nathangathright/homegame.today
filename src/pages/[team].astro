@@ -4,7 +4,7 @@ import { pickPreferredThenBW } from "../lib/color.mjs";
 import teams from "../data/teams.json";
 import "../styles/global.css";
 import { Icon } from "astro-icon/components";
-import { buildTeamPageData, buildDetailContent, dateKeyInZone } from "../lib/mlb.mjs";
+import { buildTeamPageData, buildDetailContent, dateKeyInZone } from "../lib/schedule.mjs";
 
 export const prerender = true;
 export async function getStaticPaths() {

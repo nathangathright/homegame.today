@@ -9,7 +9,7 @@ import {
   getBlueskyProfileUrl,
   getBlueskyRssUrl,
   selectGameForTeamToday,
-} from "../../../lib/mlb.mjs";
+} from "../../../lib/schedule.mjs";
 import { buildSportsEventJsonLd } from "../../../lib/seo.mjs";
 
 export const prerender = true;
@@ -31,7 +31,7 @@ export async function GET({ params, site }: { params: { slug?: string }; site: U
 
   try {
     const { startIso, endIso } = computeWindowStartEnd(new Date());
-    const data = await fetchScheduleWindowCached(team.id, startIso, endIso);
+    const data = await fetchScheduleWindowCached(team, startIso, endIso);
     const facts = deriveTeamScheduleFacts(team, data);
     const meta = buildTeamPageMeta(team, data);
 

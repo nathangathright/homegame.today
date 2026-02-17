@@ -8,6 +8,17 @@ import { readFileSync } from "node:fs";
 const teams = JSON.parse(readFileSync("./src/data/teams.json", "utf-8"));
 const teamSlugs = new Set(teams.map((/** @type {{ slug: string }} */ t) => t.slug));
 
+// Fail build if any team slugs collide
+if (teamSlugs.size !== teams.length) {
+  const seen = new Map();
+  for (const t of teams) {
+    if (seen.has(t.slug)) {
+      throw new Error(`Duplicate team slug "${t.slug}": ${seen.get(t.slug)} and ${t.name}`);
+    }
+    seen.set(t.slug, t.name);
+  }
+}
+
 // https://astro.build/config
 export default defineConfig({
   devToolbar: {

@@ -2,7 +2,6 @@ import { AtpAgent } from "@atproto/api";
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
-  fetchLeagueScheduleToday,
   fetchScheduleWindowCached,
   computeStatusForTeam,
   dateKeyInZone,
@@ -10,7 +9,7 @@ import {
   getBlueskyHandle,
   getBlueskyDid,
   deriveTeamScheduleFacts,
-} from "../src/lib/mlb.mjs";
+} from "../src/lib/schedule.mjs";
 if (process.env.CI !== "true" && process.env.GITHUB_ACTIONS !== "true") {
   await import("dotenv/config");
 }
@@ -81,20 +80,6 @@ async function fetchLatestPost(agent, did) {
 }
 
 async function main() {
-  // Off-season/no-games guard: skip entirely if MLB has zero games today
-  try {
-    const leagueData = await fetchLeagueScheduleToday();
-    const leagueDates = Array.isArray(leagueData?.dates) ? leagueData.dates : [];
-    const leagueGames = leagueDates.flatMap((d) => (Array.isArray(d?.games) ? d.games : []));
-    if (leagueGames.length === 0) {
-      console.log("No MLB games today — skipping Bluesky posts.");
-      return;
-    }
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.warn(`Unable to verify league schedule; continuing: ${message}`);
-  }
-
   const teams = await readTeams();
   let attemptedCount = 0; // teams with a configured password
   let successCount = 0; // posts that succeeded
@@ -131,7 +116,7 @@ async function main() {
 
     try {
       const { startIso, endIso } = computeWindowStartEnd(new Date());
-      const data = await fetchScheduleWindowCached(team.id, startIso, endIso);
+      const data = await fetchScheduleWindowCached(team, startIso, endIso);
       const text = computeStatusForTeam(team, data);
       const pageUrl = `https://${slug}.homegame.today`;
       const postText = text;

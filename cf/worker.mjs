@@ -54,6 +54,13 @@ function redirectToBridgy(kind, slug) {
   return Response.redirect(bridgyUrl.toString(), 302);
 }
 
+// Legacy slug redirects — old slugs that were renamed to resolve cross-sport collisions
+const LEGACY_SLUG_REDIRECTS = {
+  rangers: "tex-rangers",
+  giants: "sf-giants",
+  cardinals: "stl-cardinals",
+};
+
 function findTeamBySlug(slug) {
   try {
     return teams.find((t) => (t?.slug || "").toLowerCase() === slug);
@@ -91,6 +98,13 @@ export default {
     if (isSubdomain) {
       const slug = getSlugFromHost(hostname);
 
+      // Legacy slug redirect (e.g. rangers.homegame.today → tex-rangers.homegame.today)
+      if (slug && LEGACY_SLUG_REDIRECTS[slug]) {
+        const newSlug = LEGACY_SLUG_REDIRECTS[slug];
+        const redirectTo = `https://${newSlug}.homegame.today${pathname}${url.search}`;
+        return Response.redirect(redirectTo, 301);
+      }
+
       // Root → rewrite to /slug/ and serve from static assets
       if (pathname === "/" || pathname === "") {
         if (slug) {
@@ -123,11 +137,14 @@ export default {
       return notFound("Unknown account");
     }
 
-    // Redirect /team-slug paths to subdomains
+    // Redirect /team-slug paths to subdomains (including legacy slugs)
     const pathSlug = pathname.replace(/^\/|\/$/g, "");
-    if (pathSlug && findTeamBySlug(pathSlug)) {
-      const redirectTo = `https://${pathSlug}.homegame.today/${url.search}`;
-      return Response.redirect(redirectTo, 301);
+    if (pathSlug) {
+      const resolvedSlug = LEGACY_SLUG_REDIRECTS[pathSlug] || pathSlug;
+      if (findTeamBySlug(resolvedSlug)) {
+        const redirectTo = `https://${resolvedSlug}.homegame.today/${url.search}`;
+        return Response.redirect(redirectTo, 301);
+      }
     }
 
     // Everything else on apex (homepage, static files, API) → pass through to assets

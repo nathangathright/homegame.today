@@ -6,7 +6,7 @@ import {
   fetchScheduleWindowCached,
   computeOgText,
   computeWindowStartEnd,
-} from "../src/lib/mlb.mjs";
+} from "../src/lib/schedule.mjs";
 import { pickPreferredThenBW } from "../src/lib/color.mjs";
 
 const ROOT = path.resolve(process.cwd());
@@ -20,7 +20,7 @@ for (const arg of args) {
   }
 }
 
-// fetch/format helpers imported from src/lib/mlb.mjs
+// fetch/format helpers imported from src/lib/schedule.mjs
 
 function escapeXml(str) {
   return String(str)
@@ -149,7 +149,7 @@ async function main() {
     const secondaryColor = picked.color ?? preferredText;
 
     try {
-      const apiData = await fetchScheduleWindowCached(team.id, startIso, endIso);
+      const apiData = await fetchScheduleWindowCached(team, startIso, endIso);
       const text = computeOgText(team, apiData);
       const todayKey = dateKeyInZone(new Date(), team?.timezone);
       const outPath = path.join(OUT_DIR, `${slug}-${todayKey}.png`);

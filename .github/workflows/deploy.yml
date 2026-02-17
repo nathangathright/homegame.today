@@ -6,8 +6,8 @@ on:
   push:
     branches: [main]
   schedule:
-    # Run daily at 09:00 UTC only during MLB regular season months (Mar–Oct)
-    - cron: "0 9 * 3-10 *"
+    # Run daily at 09:00 UTC year-round (multi-sport: MLB, NHL, NBA, NFL)
+    - cron: "0 9 * * *"
   workflow_dispatch:
 
 permissions:
@@ -69,11 +69,11 @@ jobs:
           BLUESKY_PASSWORD_BLUEJAYS: ${{ secrets.BLUESKY_PASSWORD_BLUEJAYS }}
           BLUESKY_PASSWORD_BRAVES: ${{ secrets.BLUESKY_PASSWORD_BRAVES }}
           BLUESKY_PASSWORD_BREWERS: ${{ secrets.BLUESKY_PASSWORD_BREWERS }}
-          BLUESKY_PASSWORD_CARDINALS: ${{ secrets.BLUESKY_PASSWORD_CARDINALS }}
+          BLUESKY_PASSWORD_STL_CARDINALS: ${{ secrets.BLUESKY_PASSWORD_STL_CARDINALS }}
           BLUESKY_PASSWORD_CUBS: ${{ secrets.BLUESKY_PASSWORD_CUBS }}
           BLUESKY_PASSWORD_DIAMONDBACKS: ${{ secrets.BLUESKY_PASSWORD_DIAMONDBACKS }}
           BLUESKY_PASSWORD_DODGERS: ${{ secrets.BLUESKY_PASSWORD_DODGERS }}
-          BLUESKY_PASSWORD_GIANTS: ${{ secrets.BLUESKY_PASSWORD_GIANTS }}
+          BLUESKY_PASSWORD_SF_GIANTS: ${{ secrets.BLUESKY_PASSWORD_SF_GIANTS }}
           BLUESKY_PASSWORD_GUARDIANS: ${{ secrets.BLUESKY_PASSWORD_GUARDIANS }}
           BLUESKY_PASSWORD_MARINERS: ${{ secrets.BLUESKY_PASSWORD_MARINERS }}
           BLUESKY_PASSWORD_MARLINS: ${{ secrets.BLUESKY_PASSWORD_MARLINS }}
@@ -83,7 +83,7 @@ jobs:
           BLUESKY_PASSWORD_PADRES: ${{ secrets.BLUESKY_PASSWORD_PADRES }}
           BLUESKY_PASSWORD_PHILLIES: ${{ secrets.BLUESKY_PASSWORD_PHILLIES }}
           BLUESKY_PASSWORD_PIRATES: ${{ secrets.BLUESKY_PASSWORD_PIRATES }}
-          BLUESKY_PASSWORD_RANGERS: ${{ secrets.BLUESKY_PASSWORD_RANGERS }}
+          BLUESKY_PASSWORD_TEX_RANGERS: ${{ secrets.BLUESKY_PASSWORD_TEX_RANGERS }}
           BLUESKY_PASSWORD_RAYS: ${{ secrets.BLUESKY_PASSWORD_RAYS }}
           BLUESKY_PASSWORD_REDS: ${{ secrets.BLUESKY_PASSWORD_REDS }}
           BLUESKY_PASSWORD_REDSOX: ${{ secrets.BLUESKY_PASSWORD_REDSOX }}
