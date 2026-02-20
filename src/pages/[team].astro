@@ -92,6 +92,24 @@ const picked = (pickPreferredThenBW as any)({
   minLc: 45,
 });
 const fg = (picked?.color ?? preferred) as string;
+
+function esc(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+const detailHtml = (() => {
+  if (!team) return "";
+  const detail = buildDetailContent(team as any, facts as any);
+  const v = esc(detail.venue);
+  const venueHtml = (team as any).venueUrl
+    ? `<a href="${esc((team as any).venueUrl)}" rel="noopener noreferrer" target="_blank" class="underline decoration-current/30 hover:decoration-current transition-colors">${v}</a>`
+    : v;
+  if (detail.post) return `${esc(detail.pre)}${venueHtml}${esc(detail.post)}`;
+  return `${esc(detail.pre)}${venueHtml}${esc(detail.mid ?? "")}<time class="whitespace-nowrap" datetime="${detail.iso}">${esc(detail.label ?? "")}</time>.`;
+})();
 ---
 
 <Layout
@@ -136,43 +154,10 @@ const fg = (picked?.color ?? preferred) as string;
             {hasHomeToday ? "Yes" : "No"}
           </div>
           <footer>
-            <div class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 px-8 text-pretty">
-              {(() => {
-                const detail = buildDetailContent(team as any, facts as any);
-                const venueNode = (team as any).venueUrl ? (
-                  <a
-                    href={(team as any).venueUrl}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    class="underline decoration-current/30 hover:decoration-current transition-colors"
-                  >
-                    {detail.venue}
-                  </a>
-                ) : (
-                  detail.venue
-                );
-                if (detail.post) {
-                  return (
-                    <>
-                      {detail.pre}
-                      {venueNode}
-                      {detail.post}
-                    </>
-                  );
-                }
-                return (
-                  <>
-                    {detail.pre}
-                    {venueNode}
-                    {detail.mid}
-                    <time class="whitespace-nowrap" datetime={detail.iso}>
-                      {detail.label}
-                    </time>
-                    .
-                  </>
-                );
-              })()}
-            </div>
+            <div
+              class="text-[clamp(1rem,2.5vw,2rem)] opacity-90 px-8 text-pretty"
+              set:html={detailHtml}
+            />
             <nav class="flex justify-center gap-4 mt-4">
               {blueskyUrl && (
                 <>
