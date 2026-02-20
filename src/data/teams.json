@@ -8,6 +8,7 @@
     "apiId": 109,
     "colors": ["#aa182c", "#000000"],
     "venue": "Chase Field",
+    "venueUrl": "https://www.mlb.com/dbacks/ballpark/events/upcoming",
     "timezone": "America/Phoenix",
     "did": "did:plc:a7gef6ki6dudyn2unmmtz47y"
   },
@@ -20,6 +21,7 @@
     "apiId": 133,
     "colors": ["#003831", "#efb21e"],
     "venue": "Sutter Health Park",
+    "venueUrl": "https://www.sutterhealthpark.com/",
     "timezone": "America/Los_Angeles",
     "did": "did:plc:ghp5w2l6uuigkv4kjutzvd4h"
   },
@@ -32,6 +34,7 @@
     "apiId": 144,
     "colors": ["#0c2340", "#ba0c2f"],
     "venue": "Truist Park",
+    "venueUrl": "https://www.mlb.com/braves/tickets/events",
     "timezone": "America/New_York",
     "did": "did:plc:bteygzjkvjlndgfdg5dmukr5"
   },
@@ -44,6 +47,7 @@
     "apiId": 110,
     "colors": ["#df4601", "#000000"],
     "venue": "Oriole Park at Camden Yards",
+    "venueUrl": "https://www.mlb.com/orioles/ballpark",
     "timezone": "America/New_York",
     "did": "did:plc:hbatwaxdrqd4kh4jq5nviogj"
   },
@@ -56,6 +60,7 @@
     "apiId": 111,
     "colors": ["#0d2b56", "#bd3039"],
     "venue": "Fenway Park",
+    "venueUrl": "https://www.mlb.com/redsox/tickets/events",
     "timezone": "America/New_York",
     "did": "did:plc:6qvbgmthwgg55ukgyazsrgex"
   },
@@ -68,6 +73,7 @@
     "apiId": 112,
     "colors": ["#0e3386", "#cc3433"],
     "venue": "Wrigley Field",
+    "venueUrl": "https://www.mlb.com/cubs/tickets/events",
     "timezone": "America/Chicago",
     "did": "did:plc:xv6uusyawu3tyn7upw22mw24"
   },
@@ -80,6 +86,7 @@
     "apiId": 145,
     "colors": ["#000000", "#c4ced4"],
     "venue": "Guaranteed Rate Field",
+    "venueUrl": "https://www.mlb.com/whitesox/ballpark",
     "timezone": "America/Chicago",
     "did": "did:plc:6xmiwari76ljqzfjt5ealqgo"
   },
@@ -92,6 +99,7 @@
     "apiId": 113,
     "colors": ["#c6011f", "#ffffff"],
     "venue": "Great American Ball Park",
+    "venueUrl": "https://www.mlb.com/reds/ballpark/events",
     "timezone": "America/New_York",
     "did": "did:plc:mr33il35rvwcwrtck6ubwm4u"
   },
@@ -104,6 +112,7 @@
     "apiId": 114,
     "colors": ["#002b5c", "#e31937"],
     "venue": "Progressive Field",
+    "venueUrl": "https://www.mlb.com/guardians/ballpark/events/ticketed",
     "timezone": "America/New_York",
     "did": "did:plc:7nogaol5vhgq7d3fj6l3wdhm"
   },
@@ -116,6 +125,7 @@
     "apiId": 115,
     "colors": ["#33006f", "#000000"],
     "venue": "Coors Field",
+    "venueUrl": "https://www.mlb.com/rockies/tickets/concerts",
     "timezone": "America/Denver",
     "did": "did:plc:g6gra7oyygr6mfn457mte2qu"
   },
@@ -128,6 +138,7 @@
     "apiId": 116,
     "colors": ["#0a2240", "#ff4713"],
     "venue": "Comerica Park",
+    "venueUrl": "https://www.313presents.com/venue/comerica-park",
     "timezone": "America/Detroit",
     "did": "did:plc:eq62elsouws3nl3cidesmuvs"
   },
@@ -140,6 +151,7 @@
     "apiId": 117,
     "colors": ["#002d62", "#eb6e1f"],
     "venue": "Minute Maid Park",
+    "venueUrl": "https://www.mlb.com/astros/ballpark/events",
     "timezone": "America/Chicago",
     "did": "did:plc:2qwwkjqbdzus64ra3t5iwkjh"
   },
@@ -152,6 +164,7 @@
     "apiId": 118,
     "colors": ["#004687", "#7ab2dd"],
     "venue": "Kauffman Stadium",
+    "venueUrl": "https://www.mlb.com/royals/ballpark/outfield-experience/events",
     "timezone": "America/Chicago",
     "did": "did:plc:ryoorvixrrotkng36id2wjnn"
   },
@@ -164,6 +177,7 @@
     "apiId": 108,
     "colors": ["#ba0021", "#c4ced4"],
     "venue": "Angel Stadium",
+    "venueUrl": "https://www.mlb.com/angels/ballpark/events",
     "timezone": "America/Los_Angeles",
     "did": "did:plc:iufiot6xwydbh6hmxjkdbp27"
   },
@@ -176,6 +190,7 @@
     "apiId": 119,
     "colors": ["#005a9c", "#ffffff"],
     "venue": "Dodger Stadium",
+    "venueUrl": "https://www.mlb.com/dodgers/tickets/events",
     "timezone": "America/Los_Angeles",
     "did": "did:plc:ci2qmrh4xnrqhvakzbe44vxl"
   },
@@ -188,6 +203,7 @@
     "apiId": 146,
     "colors": ["#00a3e0", "#000000"],
     "venue": "loanDepot park",
+    "venueUrl": "https://www.mlb.com/marlins/ballpark/events/entertainment-sports",
     "timezone": "America/New_York",
     "did": "did:plc:yjgv7cocfgkbkvijefvdvbso"
   },
@@ -200,6 +216,7 @@
     "apiId": 158,
     "colors": ["#13294b", "#ffc72c"],
     "venue": "American Family Field",
+    "venueUrl": "https://www.mlb.com/brewers/ballpark/events/upcoming",
     "timezone": "America/Chicago",
     "did": "did:plc:wk55fjtgqjyt67hwzzojfitl"
   },
@@ -212,6 +229,7 @@
     "apiId": 142,
     "colors": ["#031f40", "#e20e32"],
     "venue": "Target Field",
+    "venueUrl": "https://www.mlb.com/twins/target-field-events/calendar",
     "timezone": "America/Chicago",
     "did": "did:plc:oh4pcm4hky2wl3nnspurxt7p"
   },
@@ -224,6 +242,7 @@
     "apiId": 121,
     "colors": ["#002d72", "#ff5910"],
     "venue": "Citi Field",
+    "venueUrl": "https://www.mlb.com/mets/tickets/concerts",
     "timezone": "America/New_York",
     "did": "did:plc:tksi4m7gvuiakvzqji4pz2nh"
   },
@@ -236,6 +255,7 @@
     "apiId": 147,
     "colors": ["#132448", "#c4ced4"],
     "venue": "Yankee Stadium",
+    "venueUrl": "https://www.mlb.com/yankees/ballpark/upcoming-events",
     "timezone": "America/New_York",
     "did": "did:plc:qxqv7dtll5qb22nziwysjz3o"
   },
@@ -248,6 +268,7 @@
     "apiId": 143,
     "colors": ["#e81828", "#003278"],
     "venue": "Citizens Bank Park",
+    "venueUrl": "https://www.mlb.com/phillies/tickets/concerts",
     "timezone": "America/New_York",
     "did": "did:plc:r3wlralia2lkyx7l24fnvcas"
   },
@@ -260,6 +281,7 @@
     "apiId": 134,
     "colors": ["#000000", "#fdb827"],
     "venue": "PNC Park",
+    "venueUrl": "https://www.mlb.com/pirates/tickets/events",
     "timezone": "America/New_York",
     "did": "did:plc:5x6c5rjj7ih4exceanj74txv"
   },
@@ -272,6 +294,7 @@
     "apiId": 135,
     "colors": ["#2f241d", "#ffc425"],
     "venue": "Petco Park",
+    "venueUrl": "https://www.mlb.com/padres/tickets/events",
     "timezone": "America/Los_Angeles",
     "did": "did:plc:hij7g6hijej7zdntothd3zaw"
   },
@@ -284,6 +307,7 @@
     "apiId": 137,
     "colors": ["#000000", "#fd5a1e"],
     "venue": "Oracle Park",
+    "venueUrl": "https://www.mlb.com/giants/tickets/events",
     "timezone": "America/Los_Angeles",
     "did": "did:plc:c5gqlf6bcrljxo4wucpyfjqf"
   },
@@ -296,6 +320,7 @@
     "apiId": 136,
     "colors": ["#005c5c", "#0c2c56"],
     "venue": "T-Mobile Park",
+    "venueUrl": "https://www.mlb.com/mariners/ballpark/events/calendar",
     "timezone": "America/Los_Angeles",
     "did": "did:plc:bu4qyr3svqjm5g4neitouk46"
   },
@@ -308,6 +333,7 @@
     "apiId": 138,
     "colors": ["#be0a14", "#001541"],
     "venue": "Busch Stadium",
+    "venueUrl": "https://www.mlb.com/cardinals/ballpark/events/upcoming",
     "timezone": "America/Chicago",
     "did": "did:plc:zfedxvj7cvyxyvvxsbtehsfx"
   },
@@ -320,6 +346,7 @@
     "apiId": 139,
     "colors": ["#092c5c", "#8fbce6"],
     "venue": "Tropicana Field",
+    "venueUrl": "https://www.mlb.com/rays/ballpark/events",
     "timezone": "America/New_York",
     "did": "did:plc:sbymro3ra22aiswuthzam2qy"
   },
@@ -332,6 +359,7 @@
     "apiId": 140,
     "colors": ["#003278", "#c0111f"],
     "venue": "Globe Life Field",
+    "venueUrl": "https://globelifefield.com/stadium-events/",
     "timezone": "America/Chicago",
     "did": "did:plc:stx4n5ypncvf4ybjypgokboh"
   },
@@ -344,6 +372,7 @@
     "apiId": 141,
     "colors": ["#134a8e", "#6cace5"],
     "venue": "Rogers Centre",
+    "venueUrl": "https://www.mlb.com/bluejays/tickets/concerts",
     "timezone": "America/Toronto",
     "did": "did:plc:k2ifxkffqf6qqzff3yqunyrk"
   },
@@ -356,6 +385,7 @@
     "apiId": 120,
     "colors": ["#ab0003", "#11225b"],
     "venue": "Nationals Park",
+    "venueUrl": "https://www.mlb.com/nationals/tickets/events",
     "timezone": "America/New_York",
     "did": "did:plc:rjtqhmviejw7ndloccs4v5yj"
   },
@@ -368,6 +398,7 @@
     "apiId": "ANA",
     "colors": ["#f47a38", "#000000"],
     "venue": "Honda Center",
+    "venueUrl": "https://www.hondacenter.com/events",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -379,6 +410,7 @@
     "apiId": "BOS",
     "colors": ["#000000", "#ffb81c"],
     "venue": "TD Garden",
+    "venueUrl": "https://www.tdgarden.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -390,6 +422,7 @@
     "apiId": "BUF",
     "colors": ["#002654", "#fcb514"],
     "venue": "KeyBank Center",
+    "venueUrl": "https://keybankcenter.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -401,6 +434,7 @@
     "apiId": "CGY",
     "colors": ["#c8102e", "#f1be48"],
     "venue": "Scotiabank Saddledome",
+    "venueUrl": "https://www.scotiabanksaddledome.com/events/calendar/",
     "timezone": "America/Edmonton"
   },
   {
@@ -412,6 +446,7 @@
     "apiId": "CAR",
     "colors": ["#cc0000", "#000000"],
     "venue": "Lenovo Center",
+    "venueUrl": "https://www.lenovocenter.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -423,6 +458,7 @@
     "apiId": "CHI",
     "colors": ["#cf0a2c", "#000000"],
     "venue": "United Center",
+    "venueUrl": "https://www.unitedcenter.com/events-and-tickets/",
     "timezone": "America/Chicago"
   },
   {
@@ -434,6 +470,7 @@
     "apiId": "COL",
     "colors": ["#6f263d", "#236192"],
     "venue": "Ball Arena",
+    "venueUrl": "https://www.ballarena.com/events-tickets/calendar/",
     "timezone": "America/Denver"
   },
   {
@@ -445,6 +482,7 @@
     "apiId": "CBJ",
     "colors": ["#002654", "#ce1126"],
     "venue": "Nationwide Arena",
+    "venueUrl": "https://www.nationwidearena.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -456,6 +494,7 @@
     "apiId": "DAL",
     "colors": ["#006847", "#000000"],
     "venue": "American Airlines Center",
+    "venueUrl": "https://www.americanairlinescenter.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -467,6 +506,7 @@
     "apiId": "DET",
     "colors": ["#ce1126", "#ffffff"],
     "venue": "Little Caesars Arena",
+    "venueUrl": "https://www.313presents.com/events/all",
     "timezone": "America/Detroit"
   },
   {
@@ -478,6 +518,7 @@
     "apiId": "EDM",
     "colors": ["#ff4c00", "#041e42"],
     "venue": "Rogers Place",
+    "venueUrl": "https://www.rogersplace.com/events/",
     "timezone": "America/Edmonton"
   },
   {
@@ -489,6 +530,7 @@
     "apiId": "FLA",
     "colors": ["#c8102e", "#041e42"],
     "venue": "Amerant Bank Arena",
+    "venueUrl": "https://www.benchmarkintlarena.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -500,6 +542,7 @@
     "apiId": "LAK",
     "colors": ["#000000", "#a2aaad"],
     "venue": "Crypto.com Arena",
+    "venueUrl": "https://www.cryptoarena.com/events",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -511,6 +554,7 @@
     "apiId": "MIN",
     "colors": ["#024930", "#a6192e"],
     "venue": "Xcel Energy Center",
+    "venueUrl": "https://www.grandcasinoarena.com/events/all",
     "timezone": "America/Chicago"
   },
   {
@@ -522,6 +566,7 @@
     "apiId": "MTL",
     "colors": ["#af1e2d", "#192168"],
     "venue": "Bell Centre",
+    "venueUrl": "https://centrebell.ca/en/events",
     "timezone": "America/Montreal"
   },
   {
@@ -533,6 +578,7 @@
     "apiId": "NSH",
     "colors": ["#ffb81c", "#041e42"],
     "venue": "Bridgestone Arena",
+    "venueUrl": "https://www.bridgestonearena.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -544,6 +590,7 @@
     "apiId": "NJD",
     "colors": ["#ce1126", "#000000"],
     "venue": "Prudential Center",
+    "venueUrl": "https://www.prucenter.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -555,6 +602,7 @@
     "apiId": "NYI",
     "colors": ["#00539b", "#f47d30"],
     "venue": "UBS Arena",
+    "venueUrl": "https://ubsarena.com/events/",
     "timezone": "America/New_York"
   },
   {
@@ -566,6 +614,7 @@
     "apiId": "NYR",
     "colors": ["#0038a8", "#ce1126"],
     "venue": "Madison Square Garden",
+    "venueUrl": "https://www.msg.com/calendar",
     "timezone": "America/New_York"
   },
   {
@@ -577,6 +626,7 @@
     "apiId": "OTT",
     "colors": ["#c52032", "#000000"],
     "venue": "Canadian Tire Centre",
+    "venueUrl": "https://www.canadiantirecentre.com/events",
     "timezone": "America/Toronto"
   },
   {
@@ -588,6 +638,7 @@
     "apiId": "PHI",
     "colors": ["#f74902", "#000000"],
     "venue": "Xfinity Mobile Arena",
+    "venueUrl": "https://www.xfinitymobilearena.com/events/all",
     "timezone": "America/New_York"
   },
   {
@@ -599,6 +650,7 @@
     "apiId": "PIT",
     "colors": ["#000000", "#fcb514"],
     "venue": "PPG Paints Arena",
+    "venueUrl": "https://www.ppgpaintsarena.com/events/calendar",
     "timezone": "America/New_York"
   },
   {
@@ -610,6 +662,7 @@
     "apiId": "SJS",
     "colors": ["#006d75", "#000000"],
     "venue": "SAP Center",
+    "venueUrl": "https://www.sapcenter.com/events/all",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -621,6 +674,7 @@
     "apiId": "SEA",
     "colors": ["#001628", "#99d9d9"],
     "venue": "Climate Pledge Arena",
+    "venueUrl": "https://climatepledgearena.com/events/month/",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -632,6 +686,7 @@
     "apiId": "STL",
     "colors": ["#002f87", "#fcb514"],
     "venue": "Enterprise Center",
+    "venueUrl": "https://www.enterprisecenter.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -643,6 +698,7 @@
     "apiId": "TBL",
     "colors": ["#002868", "#ffffff"],
     "venue": "Amalie Arena",
+    "venueUrl": "https://www.benchmarkintlarena.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -654,6 +710,7 @@
     "apiId": "TOR",
     "colors": ["#00205b", "#ffffff"],
     "venue": "Scotiabank Arena",
+    "venueUrl": "https://www.scotiabankarena.com/events",
     "timezone": "America/Toronto"
   },
   {
@@ -665,6 +722,7 @@
     "apiId": "UTA",
     "colors": ["#000000", "#6cace3"],
     "venue": "Delta Center",
+    "venueUrl": "https://www.deltacenter.com/events/",
     "timezone": "America/Denver"
   },
   {
@@ -676,6 +734,7 @@
     "apiId": "VAN",
     "colors": ["#00205b", "#00843d"],
     "venue": "Rogers Arena",
+    "venueUrl": "https://rogersarena.com/",
     "timezone": "America/Vancouver"
   },
   {
@@ -687,6 +746,7 @@
     "apiId": "VGK",
     "colors": ["#333f42", "#b4975a"],
     "venue": "T-Mobile Arena",
+    "venueUrl": "https://www.t-mobilearena.com/events/all",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -698,6 +758,7 @@
     "apiId": "WSH",
     "colors": ["#c8102e", "#041e42"],
     "venue": "Capital One Arena",
+    "venueUrl": "https://www.capitalonearena.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -709,6 +770,7 @@
     "apiId": "WPG",
     "colors": ["#041e42", "#004c97"],
     "venue": "Canada Life Centre",
+    "venueUrl": "https://www.canadalifecentre.ca/events/",
     "timezone": "America/Winnipeg"
   },
   {
@@ -720,6 +782,7 @@
     "apiId": "ATL",
     "colors": ["#e03a3e", "#c1d32f"],
     "venue": "State Farm Arena",
+    "venueUrl": "https://www.statefarmarena.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -731,6 +794,7 @@
     "apiId": "BOS",
     "colors": ["#007a33", "#ba9653"],
     "venue": "TD Garden",
+    "venueUrl": "https://www.tdgarden.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -742,6 +806,7 @@
     "apiId": "BKN",
     "colors": ["#000000", "#ffffff"],
     "venue": "Barclays Center",
+    "venueUrl": "https://www.barclayscenter.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -753,6 +818,7 @@
     "apiId": "CHA",
     "colors": ["#1d1160", "#00788c"],
     "venue": "Spectrum Center",
+    "venueUrl": "https://www.spectrumcentercharlotte.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -764,6 +830,7 @@
     "apiId": "CHI",
     "colors": ["#ce1141", "#000000"],
     "venue": "United Center",
+    "venueUrl": "https://www.unitedcenter.com/events-and-tickets/",
     "timezone": "America/Chicago"
   },
   {
@@ -775,6 +842,7 @@
     "apiId": "CLE",
     "colors": ["#860038", "#fdbb30"],
     "venue": "Rocket Mortgage FieldHouse",
+    "venueUrl": "https://www.rocketarena.com/events/all",
     "timezone": "America/New_York"
   },
   {
@@ -786,6 +854,7 @@
     "apiId": "DAL",
     "colors": ["#00538c", "#002b5e"],
     "venue": "American Airlines Center",
+    "venueUrl": "https://www.americanairlinescenter.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -797,6 +866,7 @@
     "apiId": "DEN",
     "colors": ["#0e2240", "#fec524"],
     "venue": "Ball Arena",
+    "venueUrl": "https://www.ballarena.com/events-tickets/calendar/",
     "timezone": "America/Denver"
   },
   {
@@ -808,6 +878,7 @@
     "apiId": "DET",
     "colors": ["#c8102e", "#1d42ba"],
     "venue": "Little Caesars Arena",
+    "venueUrl": "https://www.313presents.com/events/all",
     "timezone": "America/Detroit"
   },
   {
@@ -819,6 +890,7 @@
     "apiId": "GS",
     "colors": ["#1d428a", "#ffc72c"],
     "venue": "Chase Center",
+    "venueUrl": "https://www.chasecenter.com/events/",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -830,6 +902,7 @@
     "apiId": "HOU",
     "colors": ["#ce1141", "#000000"],
     "venue": "Toyota Center",
+    "venueUrl": "https://www.toyotacenter.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -841,6 +914,7 @@
     "apiId": "IND",
     "colors": ["#002d62", "#fdbb30"],
     "venue": "Gainbridge Fieldhouse",
+    "venueUrl": "https://www.gainbridgefieldhouse.com/events",
     "timezone": "America/Indiana/Indianapolis"
   },
   {
@@ -852,6 +926,7 @@
     "apiId": "LAC",
     "colors": ["#c8102e", "#1d428a"],
     "venue": "Intuit Dome",
+    "venueUrl": "https://www.intuitdome.com/events/event-schedule",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -863,6 +938,7 @@
     "apiId": "LAL",
     "colors": ["#552583", "#fdb927"],
     "venue": "Crypto.com Arena",
+    "venueUrl": "https://www.cryptoarena.com/events",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -874,6 +950,7 @@
     "apiId": "MEM",
     "colors": ["#5d76a9", "#12173f"],
     "venue": "FedExForum",
+    "venueUrl": "https://www.fedexforum.com/events-and-tickets/calendar",
     "timezone": "America/Chicago"
   },
   {
@@ -885,6 +962,7 @@
     "apiId": "MIA",
     "colors": ["#98002e", "#f9a01b"],
     "venue": "Kaseya Center",
+    "venueUrl": "https://www.kaseyacenter.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -896,6 +974,7 @@
     "apiId": "MIL",
     "colors": ["#00471b", "#eee1c6"],
     "venue": "Fiserv Forum",
+    "venueUrl": "https://www.fiservforum.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -907,6 +986,7 @@
     "apiId": "MIN",
     "colors": ["#0c2340", "#236192"],
     "venue": "Target Center",
+    "venueUrl": "https://www.targetcenter.com/events/all",
     "timezone": "America/Chicago"
   },
   {
@@ -918,6 +998,7 @@
     "apiId": "NO",
     "colors": ["#0c2340", "#c8102e"],
     "venue": "Smoothie King Center",
+    "venueUrl": "https://www.smoothiekingcenter.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -929,6 +1010,7 @@
     "apiId": "NYK",
     "colors": ["#006bb6", "#f58426"],
     "venue": "Madison Square Garden",
+    "venueUrl": "https://www.msg.com/calendar",
     "timezone": "America/New_York"
   },
   {
@@ -940,6 +1022,7 @@
     "apiId": "OKC",
     "colors": ["#007ac1", "#ef6100"],
     "venue": "Paycom Center",
+    "venueUrl": "https://www.paycomcenter.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -951,6 +1034,7 @@
     "apiId": "ORL",
     "colors": ["#0077c0", "#c4ced4"],
     "venue": "Kia Center",
+    "venueUrl": "https://www.kiacenter.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -962,6 +1046,7 @@
     "apiId": "PHI",
     "colors": ["#006bb6", "#ed174c"],
     "venue": "Wells Fargo Center",
+    "venueUrl": "https://www.wellsfargocenterphilly.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -973,6 +1058,7 @@
     "apiId": "PHX",
     "colors": ["#1d1160", "#e56020"],
     "venue": "Footprint Center",
+    "venueUrl": "https://mortgagematchupcenter.com/events/",
     "timezone": "America/Phoenix"
   },
   {
@@ -984,6 +1070,7 @@
     "apiId": "POR",
     "colors": ["#e03a3e", "#000000"],
     "venue": "Moda Center",
+    "venueUrl": "https://www.rosequarter.com/events/event-calendar",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -995,6 +1082,7 @@
     "apiId": "SAC",
     "colors": ["#5a2d81", "#63727a"],
     "venue": "Golden 1 Center",
+    "venueUrl": "https://www.golden1center.com/events/",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -1006,6 +1094,7 @@
     "apiId": "SA",
     "colors": ["#c4ced4", "#000000"],
     "venue": "Frost Bank Center",
+    "venueUrl": "https://www.frostbankcenter.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -1017,6 +1106,7 @@
     "apiId": "TOR",
     "colors": ["#ce1141", "#000000"],
     "venue": "Scotiabank Arena",
+    "venueUrl": "https://www.scotiabankarena.com/events",
     "timezone": "America/Toronto"
   },
   {
@@ -1028,6 +1118,7 @@
     "apiId": "UTAH",
     "colors": ["#002b5c", "#f9a01b"],
     "venue": "Delta Center",
+    "venueUrl": "https://www.deltacenter.com/events/",
     "timezone": "America/Denver"
   },
   {
@@ -1039,6 +1130,7 @@
     "apiId": "WSH",
     "colors": ["#002b5c", "#e31837"],
     "venue": "Capital One Arena",
+    "venueUrl": "https://www.capitalonearena.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -1050,6 +1142,7 @@
     "apiId": "ARI",
     "colors": ["#97233f", "#000000"],
     "venue": "State Farm Stadium",
+    "venueUrl": "https://www.statefarmstadium.com/events",
     "timezone": "America/Phoenix"
   },
   {
@@ -1061,6 +1154,7 @@
     "apiId": "ATL",
     "colors": ["#a71930", "#000000"],
     "venue": "Mercedes-Benz Stadium",
+    "venueUrl": "https://www.mercedesbenzstadium.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -1072,6 +1166,7 @@
     "apiId": "BAL",
     "colors": ["#241773", "#9e7c0c"],
     "venue": "M&T Bank Stadium",
+    "venueUrl": "https://www.baltimoreravens.com/schedule/event-calendar/",
     "timezone": "America/New_York"
   },
   {
@@ -1083,6 +1178,7 @@
     "apiId": "BUF",
     "colors": ["#00338d", "#c60c30"],
     "venue": "Highmark Stadium",
+    "venueUrl": "https://www.buffalobills.com/stadium/",
     "timezone": "America/New_York"
   },
   {
@@ -1094,6 +1190,7 @@
     "apiId": "CAR",
     "colors": ["#0085ca", "#101820"],
     "venue": "Bank of America Stadium",
+    "venueUrl": "https://www.bankofamericastadium.com/events/eventschedule.html",
     "timezone": "America/New_York"
   },
   {
@@ -1105,6 +1202,7 @@
     "apiId": "CHI",
     "colors": ["#0b162a", "#c83803"],
     "venue": "Soldier Field",
+    "venueUrl": "https://www.soldierfield.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -1116,6 +1214,7 @@
     "apiId": "CIN",
     "colors": ["#fb4f14", "#000000"],
     "venue": "Paycor Stadium",
+    "venueUrl": "https://www.bengals.com/stadium/concerts",
     "timezone": "America/New_York"
   },
   {
@@ -1127,6 +1226,7 @@
     "apiId": "CLE",
     "colors": ["#311d00", "#ff3c00"],
     "venue": "Huntington Bank Field",
+    "venueUrl": "https://huntingtonbankfield.com/events/",
     "timezone": "America/New_York"
   },
   {
@@ -1138,6 +1238,7 @@
     "apiId": "DAL",
     "colors": ["#003594", "#869397"],
     "venue": "AT&T Stadium",
+    "venueUrl": "https://attstadium.com/events/",
     "timezone": "America/Chicago"
   },
   {
@@ -1149,6 +1250,7 @@
     "apiId": "DEN",
     "colors": ["#fb4f14", "#002244"],
     "venue": "Empower Field at Mile High",
+    "venueUrl": "https://www.empowerfieldatmilehigh.com/events",
     "timezone": "America/Denver"
   },
   {
@@ -1160,6 +1262,7 @@
     "apiId": "DET",
     "colors": ["#0076b6", "#b0b7bc"],
     "venue": "Ford Field",
+    "venueUrl": "https://www.fordfield.com/events",
     "timezone": "America/Detroit"
   },
   {
@@ -1171,6 +1274,7 @@
     "apiId": "GB",
     "colors": ["#203731", "#ffb612"],
     "venue": "Lambeau Field",
+    "venueUrl": "https://www.packers.com/lambeau-field/",
     "timezone": "America/Chicago"
   },
   {
@@ -1182,6 +1286,7 @@
     "apiId": "HOU",
     "colors": ["#03202f", "#a71930"],
     "venue": "NRG Stadium",
+    "venueUrl": "https://www.nrgpark.com/events-tickets/",
     "timezone": "America/Chicago"
   },
   {
@@ -1193,6 +1298,7 @@
     "apiId": "IND",
     "colors": ["#002c5f", "#a2aaad"],
     "venue": "Lucas Oil Stadium",
+    "venueUrl": "https://www.lucasoilstadium.com/events-tickets/",
     "timezone": "America/Indiana/Indianapolis"
   },
   {
@@ -1204,6 +1310,7 @@
     "apiId": "JAX",
     "colors": ["#006778", "#9f792c"],
     "venue": "EverBank Stadium",
+    "venueUrl": "https://everbankstadium.com/eventschedule",
     "timezone": "America/New_York"
   },
   {
@@ -1215,6 +1322,7 @@
     "apiId": "KC",
     "colors": ["#e31837", "#ffb81c"],
     "venue": "GEHA Field at Arrowhead Stadium",
+    "venueUrl": "https://www.gehafieldatarrowhead.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -1226,6 +1334,7 @@
     "apiId": "LV",
     "colors": ["#000000", "#a5acaf"],
     "venue": "Allegiant Stadium",
+    "venueUrl": "https://www.allegiantstadium.com/events",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -1237,6 +1346,7 @@
     "apiId": "LAC",
     "colors": ["#0080c6", "#ffc20e"],
     "venue": "SoFi Stadium",
+    "venueUrl": "https://www.sofistadium.com/events",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -1248,6 +1358,7 @@
     "apiId": "LAR",
     "colors": ["#003594", "#ffa300"],
     "venue": "SoFi Stadium",
+    "venueUrl": "https://www.sofistadium.com/events",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -1259,6 +1370,7 @@
     "apiId": "MIA",
     "colors": ["#008e97", "#fc4c02"],
     "venue": "Hard Rock Stadium",
+    "venueUrl": "https://www.hardrockstadium.com/events/",
     "timezone": "America/New_York"
   },
   {
@@ -1270,6 +1382,7 @@
     "apiId": "MIN",
     "colors": ["#4f2683", "#ffc62f"],
     "venue": "U.S. Bank Stadium",
+    "venueUrl": "https://www.usbankstadium.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -1281,6 +1394,7 @@
     "apiId": "NE",
     "colors": ["#002244", "#c60c30"],
     "venue": "Gillette Stadium",
+    "venueUrl": "https://www.gillettestadium.com/upcoming-events/",
     "timezone": "America/New_York"
   },
   {
@@ -1292,6 +1406,7 @@
     "apiId": "NO",
     "colors": ["#d3bc8d", "#101820"],
     "venue": "Caesars Superdome",
+    "venueUrl": "https://www.caesarssuperdome.com/events",
     "timezone": "America/Chicago"
   },
   {
@@ -1303,6 +1418,7 @@
     "apiId": "NYG",
     "colors": ["#0b2265", "#a71930"],
     "venue": "MetLife Stadium",
+    "venueUrl": "https://www.metlifestadium.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -1314,6 +1430,7 @@
     "apiId": "NYJ",
     "colors": ["#125740", "#ffffff"],
     "venue": "MetLife Stadium",
+    "venueUrl": "https://www.metlifestadium.com/events",
     "timezone": "America/New_York"
   },
   {
@@ -1325,6 +1442,7 @@
     "apiId": "PHI",
     "colors": ["#004c54", "#a5acaf"],
     "venue": "Lincoln Financial Field",
+    "venueUrl": "https://www.lincolnfinancialfield.com/events/",
     "timezone": "America/New_York"
   },
   {
@@ -1336,6 +1454,7 @@
     "apiId": "PIT",
     "colors": ["#ffb612", "#101820"],
     "venue": "Acrisure Stadium",
+    "venueUrl": "https://acrisurestadium.com/events/",
     "timezone": "America/New_York"
   },
   {
@@ -1347,6 +1466,7 @@
     "apiId": "SF",
     "colors": ["#aa0000", "#b3995d"],
     "venue": "Levi's Stadium",
+    "venueUrl": "https://levisstadium.com/events/category/tickets/",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -1358,6 +1478,7 @@
     "apiId": "SEA",
     "colors": ["#002244", "#69be28"],
     "venue": "Lumen Field",
+    "venueUrl": "https://www.lumenfield.com/events-tickets/event-calendar",
     "timezone": "America/Los_Angeles"
   },
   {
@@ -1369,6 +1490,7 @@
     "apiId": "TB",
     "colors": ["#d50a0a", "#34302b"],
     "venue": "Raymond James Stadium",
+    "venueUrl": "https://raymondjamesstadium.com/upcomingevents",
     "timezone": "America/New_York"
   },
   {
@@ -1380,6 +1502,7 @@
     "apiId": "TEN",
     "colors": ["#0c2340", "#4b92db"],
     "venue": "Nissan Stadium",
+    "venueUrl": "https://nissanstadium.com/upcoming-events/",
     "timezone": "America/Chicago"
   },
   {
@@ -1391,6 +1514,7 @@
     "apiId": "WSH",
     "colors": ["#5a1414", "#ffb612"],
     "venue": "Northwest Stadium",
+    "venueUrl": "https://northweststadium.com/events",
     "timezone": "America/New_York"
   }
 ]

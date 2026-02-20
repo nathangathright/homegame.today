@@ -266,11 +266,17 @@ export function buildDetailContent(team, facts) {
     const g = homeToday[0];
     const dtIso = g?.gameDate;
     if (!dtIso) {
-      return { fallback: `Yes, game at ${venue} today.` };
+      return { pre: "Yes, game at ", venue, post: " today." };
     }
     const dt = new Date(dtIso);
     const label = dt.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: tz });
-    return { pre: `Today's game at ${venue} is scheduled for `, iso: dt.toISOString(), label };
+    return {
+      pre: "Today's game at ",
+      venue,
+      mid: " is scheduled for ",
+      iso: dt.toISOString(),
+      label,
+    };
   }
 
   // Next upcoming home game
@@ -282,8 +288,14 @@ export function buildDetailContent(team, facts) {
     });
     const dt = new Date(nextHome.gameDate);
     const label = timeCertain && timePart ? `${datePart} at ${timePart}` : `${datePart}`;
-    return { pre: `The next game at ${venue} is scheduled for `, iso: dt.toISOString(), label };
+    return {
+      pre: "The next game at ",
+      venue,
+      mid: " is scheduled for ",
+      iso: dt.toISOString(),
+      label,
+    };
   }
 
-  return { fallback: `The next game at ${venue} is not yet scheduled.` };
+  return { pre: "The next game at ", venue, post: " is not yet scheduled." };
 }
